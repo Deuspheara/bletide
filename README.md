@@ -28,6 +28,53 @@ Bluetooth Classic, peripheral/server mode, automatic reconnect, bonding control
 and background restoration are outside the current API. Applications handle
 reconnect policy and rediscover attributes for each new connection generation.
 
+## Platform and feature support
+
+✅ Implemented · ❌ Unsupported. These describe backend capabilities, not
+completed hardware validation. **All platforms remain experimental; none has
+completed the physical peripheral test suite.** Features also depend on adapter,
+peripheral, permissions and browser availability. Check `ble.capabilities` at runtime.
+
+| BLE feature | Android | iOS | macOS | Windows | Linux | Web |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| Adapter state | ✅ | ✅ | ✅ | ✅ | ✅ | Browser availability only |
+| Continuous scanning | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Device chooser (`requestDevice`) | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Advertisement manufacturer / service data | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Connect / disconnect | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Service / characteristic discovery | ✅ | ✅ | ✅ | ✅ | ✅ | ✅¹ |
+| Characteristic reads / writes | ✅ | ✅ | ✅ | ✅ | ✅ | ✅¹ |
+| Descriptor reads / writes | ✅ | ✅ | ✅ | ✅ | ✅ | ✅¹ |
+| Notifications with awaitable setup / teardown | ✅ | ✅ | ✅ | ✅ | ✅ | ✅¹ |
+| Fresh connected RSSI | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| MTU snapshot / single-write budget | ✅ | Inferred² | Inferred² | ✅ | Snapshot / fallback² | ❌ |
+| Explicit MTU request | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Connection-priority hint | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Nonstandard CCCD compatibility opt-in | ✅³ | ✅³ | ✅³ | ❌ | ❌ | ❌ |
+
+1. Web access is limited to browser-permitted services and attributes. Device
+   selection requires a user gesture and a secure context; grant additional
+   services through `optionalServices`.
+2. MTU is a snapshot, not a negotiated request. Apple infers it from the maximum
+   write-without-response length; Linux can fall back to 23. The native write
+   budget is conservative; Bletide does not split writes automatically.
+3. Compatibility mode is explicit per characteristic: Android skips the CCCD
+   write after enabling local routing; Apple tolerates a narrow missing-CCCD
+   callback error. See [notification compatibility](doc/limitations.md#notification-compatibility).
+
+| Platform | Backend | Requirements | Verification recorded |
+|---|---|---|---|
+| Android | Rust + bundled JNI/Java | API24+, app-owned Bluetooth permissions | ARMv7 / ARM64 / x64 release APK builds and bundle checks |
+| iOS | Rust + CoreBluetooth | Xcode, Bluetooth usage descriptions; example targets iOS15+ | Historical unsigned device / simulator builds; signed device execution pending |
+| macOS | Rust + CoreBluetooth | Xcode, Bluetooth usage descriptions and sandbox entitlements; example targets macOS12+ | Release consumer build and bundle checks |
+| Windows | Rust + WinRT | Flutter desktop prerequisites and MSVC | Historical CI consumer build / bundle checks and x64 / ARM64 target checks; current runtime validation pending |
+| Linux | Rust + BlueZ/D-Bus | D-Bus development libraries; healthy BlueZ and runtime access | Historical CI consumer build / bundle checks; current healthy-bus and ARM64 runtime validation pending |
+| Web | Web Bluetooth | Supporting browser, secure context, user gesture and service grants | JavaScript contract tests and browser build; physical browser / peripheral and Wasm runtime validation pending |
+
+Build and controlled-test evidence does not establish physical Bluetooth behavior.
+See [verification status](doc/implementation-status.md),
+[platform setup](doc/platforms.md) and [limitations](doc/limitations.md).
+
 ## Get started
 
 Clone [the repository](https://github.com/Deuspheara/bletide):
@@ -167,20 +214,21 @@ services beyond the chooser filters. Connect using the returned `deviceId`.
 Continuous scanning, RSSI and MTU reporting are unavailable on Web. Browser
 promises and the chooser cannot be physically aborted; late results are discarded.
 
-## Platforms
+## Remaining work
 
-| Platform | Integration | Requirements / limits |
-|---|---|---|
-| Android | Rust + bundled JNI/Java | API24+, app-owned Bluetooth permissions |
-| iOS / macOS | Rust + CoreBluetooth | Xcode, Bluetooth usage descriptions; macOS entitlements |
-| Windows | Rust + WinRT | Windows C++ build tools; Flutter loading/runtime validation pending |
-| Linux | Rust + BlueZ/D-Bus | D-Bus development libraries for builds; healthy BlueZ/access at runtime |
-| Web | Browser Web Bluetooth | Supporting browser, secure context, user gesture and service grants |
+- Run the full GitHub Actions matrix on the release candidate and repeat the
+  fresh-checkout, source/license inventory and package archive checks.
+- Complete controlled-peripheral discovery, GATT, notification, reconnect and
+  resource-stress scenarios on each claimed platform.
+- Validate Windows DLL loading and WinRT failures, healthy Linux BlueZ/D-Bus
+  execution (including ARM64), current Android API/ABI combinations, signed iOS
+  execution, and physical Web Bluetooth behavior / Wasm runtime.
+- Finish foreign/unsafe-boundary, OS resource-retention and diagnostics review
+  before claiming stable support. Review repository settings and public metadata
+  before the first release.
 
-Check `ble.capabilities` before platform-specific operations. Android supports
-explicit MTU requests and connection-priority hints. `getWritePayloadLimit()`
-returns a conservative single-write budget where supported.
-See [platform details](doc/platforms.md) and [limitations](doc/limitations.md).
+Track release gates in [implementation status](doc/implementation-status.md)
+and follow the [publishing checklist](doc/releasing.md).
 
 ## Development
 
