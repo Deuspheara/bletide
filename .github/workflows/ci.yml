@@ -32,7 +32,7 @@ jobs:
         working-directory: rust
       - name: Resolve Dart dependencies
         run: flutter pub get
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - name: Repository hygiene
