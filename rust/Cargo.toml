@@ -1,0 +1,30 @@
+[package]
+name = "bletide"
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.99"
+license = "MIT"
+
+[lib]
+name = "bletide"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[features]
+# Internal counters and hardware-free drivers for native ABI contract tests.
+test-support = []
+
+[dependencies]
+btleplug = { version = "=0.13.3", path = "vendor/btleplug" }
+tokio = { version = "1.48", features = ["rt-multi-thread", "sync", "time", "macros"] }
+uuid = "1.18"
+futures-util = "0.3"
+
+[dev-dependencies]
+tokio = { version = "1.48", features = ["test-util"] }
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "=0.22.4"
+
+[patch.crates-io]
+dbus = { path = "vendor/dbus" }
+dbus-tokio = { path = "vendor/dbus-tokio" }

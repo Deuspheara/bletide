@@ -1,0 +1,37 @@
+--- a/src/main/java/io/github/gedgygedgy/rust/stream/QueueStream.java
++++ b/src/main/java/io/github/gedgygedgy/rust/stream/QueueStream.java
+@@ -2,6 +2,7 @@
+ 
+ import io.github.gedgygedgy.rust.task.PollResult;
+ import io.github.gedgygedgy.rust.task.Waker;
++import io.github.gedgygedgy.rust.future.FutureException;
+ 
+ import java.util.LinkedList;
+ import java.util.Queue;
+@@ -15,6 +16,7 @@
+     private Waker waker = null;
+     private final Queue<T> result = new LinkedList<>();
+     private boolean finished = false;
++    private Throwable failure = null;
+     private final int capacity;
+     private final Object lock = new Object();
+ 
+@@ -54,7 +56,9 @@
+                 T item = this.result.remove();
+                 result = () -> () -> item;
+             } else if (this.finished) {
+-                result = () -> null;
++                Throwable failure = this.failure;
++                this.failure = null;
++                result = failure == null ? () -> null : () -> { throw new FutureException(failure); };
+             } else {
+                 oldWaker = this.waker;
+                 this.waker = waker;
+@@ -94,6 +98,7 @@
+                 if (this.result.size() >= this.capacity) {
+                     this.result.clear();
+                     this.finished = true;
++                    this.failure = new IllegalStateException("Notification queue overflow (capacity: " + this.capacity + ")");
+                 } else {
+                     this.result.add(item);
+                 }

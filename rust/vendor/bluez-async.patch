@@ -1,0 +1,1728 @@
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -68,7 +68,7 @@
+  "pretty_env_logger",
+  "serde",
+  "serde-xml-rs",
+- "thiserror 2.0.12",
++ "thiserror",
+  "tokio",
+  "uuid",
+ ]
+@@ -96,22 +96,18 @@
+ 
+ [[package]]
+ name = "dbus"
+-version = "0.9.7"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "1bb21987b9fb1613058ba3843121dd18b163b254d8a6e797e144cbac14d96d1b"
++version = "0.9.12"
+ dependencies = [
+  "futures-channel",
+  "futures-util",
+  "libc",
+  "libdbus-sys",
+- "winapi",
++ "windows-sys 0.61.2",
+ ]
+ 
+ [[package]]
+ name = "dbus-tokio"
+ version = "0.7.6"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "007688d459bc677131c063a3a77fb899526e17b7980f390b69644bdbc41fad13"
+ dependencies = [
+  "dbus",
+  "libc",
+@@ -321,9 +317,9 @@
+ 
+ [[package]]
+ name = "libdbus-sys"
+-version = "0.2.3"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "2264f9d90a9b4e60a2dc722ad899ea0374f03c2e96e755fe22a8f551d4d5fb3c"
++version = "0.2.7"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "328c4789d42200f1eeec05bd86c9c13c7f091d2ba9a6ea35acdf51f31bc0f043"
+ dependencies = [
+  "pkg-config",
+ ]
+@@ -475,14 +471,14 @@
+ 
+ [[package]]
+ name = "serde-xml-rs"
+-version = "0.8.1"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "53630160a98edebde0123eb4dfd0fce6adff091b2305db3154a9e920206eb510"
++version = "0.8.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "cc2215ce3e6a77550b80a1c37251b7d294febaf42e36e21b7b411e0bf54d540d"
+ dependencies = [
+  "log",
+  "serde",
+- "thiserror 1.0.68",
+- "xml-rs",
++ "thiserror",
++ "xml",
+ ]
+ 
+ [[package]]
+@@ -534,31 +530,11 @@
+ 
+ [[package]]
+ name = "thiserror"
+-version = "1.0.68"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "02dd99dc800bbb97186339685293e1cc5d9df1f8fae2d0aecd9ff1c77efea892"
+-dependencies = [
+- "thiserror-impl 1.0.68",
+-]
+-
+-[[package]]
+-name = "thiserror"
+ version = "2.0.12"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "567b8a2dae586314f7be2a752ec7474332959c6460e02bde30d702a66d488708"
+ dependencies = [
+- "thiserror-impl 2.0.12",
+-]
+-
+-[[package]]
+-name = "thiserror-impl"
+-version = "1.0.68"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "a7c61ec9a6f64d2793d8a45faba21efbe3ced62a886d44c36a009b2b519b4c7e"
+-dependencies = [
+- "proc-macro2",
+- "quote",
+- "syn",
++ "thiserror-impl",
+ ]
+ 
+ [[package]]
+@@ -648,6 +624,12 @@
+ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
+ 
+ [[package]]
++name = "windows-link"
++version = "0.2.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "f0805222e57f7521d6a62e36fa9163bc891acd422f971defe97d64e70d0a4fe5"
++
++[[package]]
+ name = "windows-sys"
+ version = "0.48.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+@@ -663,6 +645,15 @@
+ checksum = "282be5f36a8ce781fad8c8ae18fa3f9beff57ec1b52cb3de0789201425d9a33d"
+ dependencies = [
+  "windows-targets 0.52.6",
++]
++
++[[package]]
++name = "windows-sys"
++version = "0.61.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc"
++dependencies = [
++ "windows-link",
+ ]
+ 
+ [[package]]
+@@ -787,7 +778,7 @@
+ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
+ 
+ [[package]]
+-name = "xml-rs"
+-version = "0.8.14"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "52839dc911083a8ef63efa4d039d1f58b5e409f923e44c80828f206f66e5541c"
++name = "xml"
++version = "1.4.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "2f45bb2c13fec6a6cb4c0f76a7e94839e110a14ec803ec2940777a94c347bc52"
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -100,7 +100,7 @@
+ 
+ [dependencies.tokio]
+ version = "1.45.1"
+-features = ["rt"]
++features = ["rt", "sync", "macros"]
+ 
+ [dependencies.uuid]
+ version = "1.16.0"
+@@ -119,3 +119,7 @@
+     "rt-multi-thread",
+     "time",
+ ]
++
++[patch.crates-io]
++dbus = { path = "../dbus" }
++dbus-tokio = { path = "../dbus-tokio" }
+--- a/src/adapter.rs
++++ b/src/adapter.rs
+@@ -29,14 +29,7 @@
+ 
+ impl Display for AdapterId {
+     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+-        write!(
+-            f,
+-            "{}",
+-            self.object_path
+-                .to_string()
+-                .strip_prefix("/org/bluez/")
+-                .ok_or(fmt::Error)?
+-        )
++        write!(f, "{}", crate::object_path::display(&self.object_path))
+     }
+ }
+ 
+@@ -110,6 +103,14 @@
+     use super::*;
+ 
+     #[test]
++    fn shallow_and_opaque_paths_format_without_panicking() {
++        for path in ["/", "/node", "/custom/adapter/device"] {
++            let id = AdapterId::new(path);
++            assert_eq!(id.to_string(), path);
++        }
++    }
++
++    #[test]
+     fn adapter_info_minimal() {
+         let id = AdapterId::new("/org/bluez/hci0");
+         let mut adapter_properties: PropMap = HashMap::new();
+--- a/src/async_setup.rs
++++ b/src/async_setup.rs
+@@ -0,0 +1,47 @@
++//! Authentication and Hello own their reactor inline; cancellation drops both.
++use dbus::{
++    channel::Channel,
++    nonblock::{Proxy, SyncConnection},
++};
++use dbus_tokio::connection::{IOResource, IOResourceError, from_channel};
++use std::{
++    future::{Future, poll_fn},
++    sync::Arc,
++    task::Poll,
++    time::Duration,
++};
++
++pub(crate) async fn register_channel(
++    channel: Channel,
++) -> Result<(IOResource<SyncConnection>, Arc<SyncConnection>), IOResourceError> {
++    let (resource, connection) = from_channel::<SyncConnection>(channel)?;
++    let mut resource = Box::pin(resource);
++    // Install the reactor waker before Hello sends queued authentication data.
++    poll_fn(|cx| match resource.as_mut().poll(cx) {
++        Poll::Pending => Poll::Ready(Ok(())),
++        Poll::Ready(error) => Poll::Ready(Err(error)),
++    })
++    .await?;
++    let name: (String,) = {
++        let proxy = Proxy::new(
++            "org.freedesktop.DBus",
++            "/org/freedesktop/DBus",
++            Duration::from_secs(30),
++            connection.clone(),
++        );
++        let hello = proxy.method_call("org.freedesktop.DBus", "Hello", ());
++        tokio::pin!(hello);
++        tokio::select! {
++            result = &mut hello => result?,
++            error = resource.as_mut() => return Err(error),
++        }
++    };
++    // No task was spawned. Dropping the inline resource retires its fd watch
++    // before exclusive channel mutation and preserves the connected transport.
++    drop(resource);
++    let connection = Arc::try_unwrap(connection)
++        .map_err(|_| dbus::Error::new_failed("D-Bus bootstrap retained a connection owner"))?;
++    let mut channel = connection.into_channel();
++    channel.set_unique_name(&name.0)?;
++    from_channel::<SyncConnection>(channel).map_err(Into::into)
++}
+--- a/src/characteristic.rs
++++ b/src/characteristic.rs
+@@ -24,11 +24,7 @@
+ 
+     /// Get the ID of the service on which this characteristic was advertised.
+     pub fn service(&self) -> ServiceId {
+-        let index = self
+-            .object_path
+-            .rfind('/')
+-            .expect("CharacteristicId object_path must contain a slash.");
+-        ServiceId::new(&self.object_path[0..index])
++        ServiceId::new(crate::object_path::parent(&self.object_path))
+     }
+ }
+ 
+@@ -40,14 +36,7 @@
+ 
+ impl Display for CharacteristicId {
+     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+-        write!(
+-            f,
+-            "{}",
+-            self.object_path
+-                .to_string()
+-                .strip_prefix("/org/bluez/")
+-                .ok_or(fmt::Error)?
+-        )
++        write!(f, "{}", crate::object_path::display(&self.object_path))
+     }
+ }
+ 
+@@ -157,6 +146,22 @@
+ #[cfg(test)]
+ mod tests {
+     use super::*;
++
++    #[test]
++    fn shallow_and_opaque_paths_format_without_panicking() {
++        for path in ["/", "/node", "/custom/adapter/device"] {
++            let id = CharacteristicId::new(path);
++            assert_eq!(id.to_string(), path);
++            assert_eq!(
++                id.service(),
++                ServiceId::new(if path == "/custom/adapter/device" {
++                    "/custom/adapter"
++                } else {
++                    "/"
++                })
++            );
++        }
++    }
+     use dbus::arg::{PropMap, Variant};
+     use std::{collections::HashMap, convert::TryInto};
+ 
+--- a/src/cleanup.rs
++++ b/src/cleanup.rs
+@@ -0,0 +1,351 @@
++//! Match removal is driven inside the same owned future as D-Bus I/O.
++//! Dropping that future drops queued/running cleanup; no cleanup task is spawned.
++use futures::{StreamExt, stream::FuturesUnordered};
++use std::{future::Future, pin::Pin};
++use tokio::sync::{mpsc, watch};
++
++const CAPACITY: usize = 64;
++const CONCURRENT: usize = 16;
++type Removal = Pin<Box<dyn Future<Output = Result<(), String>> + Send>>;
++
++/// A canceled AddMatch may already be accepted remotely. Retain its reply
++/// future and remove only after success, so a refused setup cannot remove
++/// another owner's identical rule. Both phases run inside the owned resource.
++pub(crate) async fn remove_after_setup(
++    setup: impl Future<Output = Result<(), String>>,
++    removal: impl Future<Output = Result<(), String>>,
++) -> Result<(), String> {
++    setup.await?;
++    removal.await
++}
++
++#[derive(Clone)]
++pub(crate) struct CleanupSender {
++    sender: mpsc::Sender<Removal>,
++    failure: watch::Sender<Option<String>>,
++}
++
++pub(crate) struct Cleanup {
++    receiver: mpsc::Receiver<Removal>,
++    failure: watch::Receiver<Option<String>>,
++    record: watch::Sender<Option<String>>,
++}
++
++pub(crate) fn queue() -> (CleanupSender, Cleanup) {
++    let (sender, receiver) = mpsc::channel(CAPACITY);
++    let (failure, observed) = watch::channel(None);
++    (
++        CleanupSender {
++            sender,
++            failure: failure.clone(),
++        },
++        Cleanup {
++            receiver,
++            failure: observed,
++            record: failure,
++        },
++    )
++}
++
++impl CleanupSender {
++    pub(crate) fn failure(&self) -> Option<String> {
++        self.failure.borrow().clone()
++    }
++    pub(crate) fn record_failure(&self, message: &str) {
++        self.failure.send_if_modified(|failure| {
++            if failure.is_some() {
++                return false;
++            }
++            *failure = Some(message.to_owned());
++            true
++        });
++    }
++    pub(crate) fn push(&self, removal: impl Future<Output = Result<(), String>> + Send + 'static) {
++        match self.sender.try_send(Box::pin(removal)) {
++            Ok(()) | Err(mpsc::error::TrySendError::Closed(_)) => {}
++            Err(mpsc::error::TrySendError::Full(_)) => {
++                self.record_failure("D-Bus match cleanup queue overflow");
++            }
++        }
++        // A closed receiver means the owned transport has already stopped.
++        // Callers remove local callbacks before enqueueing; connection Drop
++        // releases server-side matches once its remaining references disappear.
++    }
++}
++
++impl Cleanup {
++    async fn run(mut self) -> Result<(), String> {
++        let mut active = FuturesUnordered::new();
++        let mut accepting = true;
++        loop {
++            if let Some(failure) = self.failure.borrow().clone() {
++                return Err(failure);
++            }
++            if !accepting && active.is_empty() {
++                return Ok(());
++            }
++            tokio::select! {
++                _ = self.failure.changed() => {}
++                removal = self.receiver.recv(), if accepting && active.len() < CONCURRENT => {
++                    match removal {
++                        Some(removal) => active.push(removal),
++                        None => accepting = false,
++                    }
++                }
++                Some(result) = active.next(), if !active.is_empty() => {
++                    if let Err(message) = result {
++                        self.record.send_if_modified(|failure| {
++                            if failure.is_some() { return false; }
++                            *failure = Some(message.clone());
++                            true
++                        });
++                        return Err(message);
++                    }
++                }
++            }
++        }
++    }
++}
++
++/// None means every session/stream sender was dropped and cleanup finished.
++pub(crate) async fn drive<T>(
++    transport: impl Future<Output = T>,
++    cleanup: Cleanup,
++) -> Result<Option<T>, String> {
++    tokio::pin!(transport);
++    tokio::select! {
++        result = &mut transport => Ok(Some(result)),
++        result = cleanup.run() => result.map(|()| None),
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use std::sync::{
++        Arc,
++        atomic::{AtomicUsize, Ordering},
++    };
++
++    struct Live(Arc<AtomicUsize>);
++    impl Drop for Live {
++        fn drop(&mut self) {
++            self.0.fetch_sub(1, Ordering::SeqCst);
++        }
++    }
++
++    #[tokio::test]
++    async fn canceled_match_waits_for_ack_before_removing_its_rule() {
++        let (sender, cleanup) = queue();
++        let (acknowledge, reply) = tokio::sync::oneshot::channel();
++        let (started, waiting) = tokio::sync::oneshot::channel();
++        let removed = Arc::new(AtomicUsize::new(0));
++        let count = removed.clone();
++        sender.push(remove_after_setup(
++            async move {
++                started.send(()).unwrap();
++                reply.await.unwrap()
++            },
++            async move {
++                count.fetch_add(1, Ordering::SeqCst);
++                Ok(())
++            },
++        ));
++        let owner = tokio::spawn(drive(std::future::pending::<()>(), cleanup));
++        waiting.await.unwrap();
++        assert_eq!(removed.load(Ordering::SeqCst), 0);
++        acknowledge.send(Ok(())).unwrap();
++        drop(sender);
++        assert_eq!(owner.await.unwrap(), Ok(None));
++        assert_eq!(removed.load(Ordering::SeqCst), 1);
++    }
++
++    #[tokio::test]
++    async fn refused_setup_preserves_error_without_removing_another_owners_rule() {
++        let (sender, cleanup) = queue();
++        let removed = Arc::new(AtomicUsize::new(0));
++        let count = removed.clone();
++        sender.push(remove_after_setup(
++            async { Err("AddMatch access denied".into()) },
++            async move {
++                count.fetch_add(1, Ordering::SeqCst);
++                Ok(())
++            },
++        ));
++        assert_eq!(
++            drive(std::future::pending::<()>(), cleanup).await,
++            Err("AddMatch access denied".into())
++        );
++        assert_eq!(removed.load(Ordering::SeqCst), 0);
++        assert_eq!(sender.failure(), Some("AddMatch access denied".into()));
++    }
++
++    #[tokio::test]
++    async fn transport_abort_releases_pending_setup_and_unstarted_removal() {
++        let (sender, cleanup) = queue();
++        let live = Arc::new(AtomicUsize::new(2));
++        let setup = Live(live.clone());
++        let removal = Live(live.clone());
++        let (started, waiting) = tokio::sync::oneshot::channel();
++        sender.push(remove_after_setup(
++            async move {
++                let _setup = setup;
++                started.send(()).unwrap();
++                std::future::pending::<Result<(), String>>().await
++            },
++            async move {
++                let _removal = removal;
++                panic!("removal must not run before setup succeeds")
++            },
++        ));
++        let owner = tokio::spawn(drive(std::future::pending::<()>(), cleanup));
++        waiting.await.unwrap();
++        owner.abort();
++        assert!(owner.await.unwrap_err().is_cancelled());
++        assert_eq!(live.load(Ordering::SeqCst), 0);
++    }
++
++    #[tokio::test]
++    async fn transport_owner_abort_drops_running_and_queued_removals() {
++        let (sender, cleanup) = queue();
++        let live = Arc::new(AtomicUsize::new(0));
++        let (started, running) = tokio::sync::oneshot::channel();
++        live.fetch_add(1, Ordering::SeqCst);
++        let first = Live(live.clone());
++        sender.push(async move {
++            let _first = first;
++            started.send(()).unwrap();
++            std::future::pending().await
++        });
++        let owner = tokio::spawn(drive(std::future::pending::<()>(), cleanup));
++        running.await.unwrap();
++        for _ in 0..CAPACITY {
++            live.fetch_add(1, Ordering::SeqCst);
++            let resource = Live(live.clone());
++            sender.push(async move {
++                let _resource = resource;
++                std::future::pending().await
++            });
++        }
++        owner.abort();
++        assert!(owner.await.unwrap_err().is_cancelled());
++        assert_eq!(live.load(Ordering::SeqCst), 0);
++        assert!(sender.sender.is_closed());
++        assert_eq!(sender.failure(), None);
++    }
++
++    #[tokio::test]
++    async fn last_sender_drop_drains_removals_then_releases_transport() {
++        let (sender, cleanup) = queue();
++        let live = Arc::new(AtomicUsize::new(1));
++        let transport = Live(live.clone());
++        let (release, gate) = tokio::sync::oneshot::channel();
++        let (started, running) = tokio::sync::oneshot::channel();
++        sender.push(async move {
++            started.send(()).unwrap();
++            gate.await.unwrap();
++            Ok(())
++        });
++        let owner = tokio::spawn(drive(
++            async move {
++                let _transport = transport;
++                std::future::pending::<()>().await
++            },
++            cleanup,
++        ));
++        running.await.unwrap();
++        drop(sender);
++        assert!(!owner.is_finished());
++        release.send(()).unwrap();
++        assert_eq!(owner.await.unwrap(), Ok(None));
++        assert_eq!(live.load(Ordering::SeqCst), 0);
++    }
++
++    #[tokio::test]
++    async fn removal_failure_preserves_cause_and_drops_remaining_work() {
++        let (sender, cleanup) = queue();
++        let live = Arc::new(AtomicUsize::new(1));
++        let resource = Live(live.clone());
++        sender.push(async move {
++            let _resource = resource;
++            std::future::pending().await
++        });
++        sender.push(async { Err("RemoveMatch access denied".into()) });
++        assert_eq!(
++            drive(std::future::pending::<()>(), cleanup).await,
++            Err("RemoveMatch access denied".into())
++        );
++        assert_eq!(live.load(Ordering::SeqCst), 0);
++        assert!(sender.sender.is_closed());
++        assert_eq!(sender.failure(), Some("RemoveMatch access denied".into()));
++    }
++
++    #[tokio::test]
++    async fn overflow_is_bounded_and_reported_without_polling_dropped_work() {
++        let (sender, cleanup) = queue();
++        let live = Arc::new(AtomicUsize::new(0));
++        for _ in 0..CAPACITY + 10 {
++            live.fetch_add(1, Ordering::SeqCst);
++            let resource = Live(live.clone());
++            sender.push(async move {
++                let _resource = resource;
++                panic!("overflowed work must not run");
++            });
++        }
++        assert_eq!(live.load(Ordering::SeqCst), CAPACITY);
++        assert_eq!(
++            sender.failure(),
++            Some("D-Bus match cleanup queue overflow".into())
++        );
++        assert_eq!(
++            drive(std::future::pending::<()>(), cleanup).await,
++            Err("D-Bus match cleanup queue overflow".into())
++        );
++        assert_eq!(live.load(Ordering::SeqCst), 0);
++    }
++
++    #[test]
++    fn closed_registration_drops_future_without_spawning_a_task() {
++        let (sender, cleanup) = queue();
++        drop(cleanup);
++        let live = Arc::new(AtomicUsize::new(1));
++        let resource = Live(live.clone());
++        sender.push(async move {
++            let _resource = resource;
++            panic!("closed work must not run");
++        });
++        assert_eq!(live.load(Ordering::SeqCst), 0);
++    }
++
++    #[tokio::test]
++    async fn cancellation_retains_overflow_registered_before_resource_poll() {
++        let (sender, cleanup) = queue();
++        for _ in 0..=CAPACITY {
++            sender.push(std::future::pending());
++        }
++        let owner = tokio::spawn(drive(std::future::pending::<()>(), cleanup));
++        owner.abort();
++        assert!(owner.await.unwrap_err().is_cancelled());
++        assert_eq!(
++            sender.failure(),
++            Some("D-Bus match cleanup queue overflow".into())
++        );
++        assert!(sender.sender.is_closed());
++    }
++
++    #[tokio::test]
++    async fn transport_failure_drops_removal_work() {
++        let (sender, cleanup) = queue();
++        let live = Arc::new(AtomicUsize::new(1));
++        let resource = Live(live.clone());
++        sender.push(async move {
++            let _resource = resource;
++            std::future::pending().await
++        });
++        assert_eq!(
++            drive(async { "bus disconnected" }, cleanup).await,
++            Ok(Some("bus disconnected"))
++        );
++        assert_eq!(live.load(Ordering::SeqCst), 0);
++    }
++}
+--- a/src/descriptor.rs
++++ b/src/descriptor.rs
+@@ -22,11 +22,7 @@
+ 
+     /// Get the ID of the characteristic on which this descriptor was advertised.
+     pub fn characteristic(&self) -> CharacteristicId {
+-        let index = self
+-            .object_path
+-            .rfind('/')
+-            .expect("DescriptorId object_path must contain a slash.");
+-        CharacteristicId::new(&self.object_path[0..index])
++        CharacteristicId::new(crate::object_path::parent(&self.object_path))
+     }
+ }
+ 
+@@ -38,14 +34,7 @@
+ 
+ impl Display for DescriptorId {
+     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+-        write!(
+-            f,
+-            "{}",
+-            self.object_path
+-                .to_string()
+-                .strip_prefix("/org/bluez/")
+-                .ok_or(fmt::Error)?
+-        )
++        write!(f, "{}", crate::object_path::display(&self.object_path))
+     }
+ }
+ 
+@@ -62,6 +51,22 @@
+ #[cfg(test)]
+ mod tests {
+     use super::*;
++
++    #[test]
++    fn shallow_and_opaque_paths_format_without_panicking() {
++        for path in ["/", "/node", "/custom/adapter/device"] {
++            let id = DescriptorId::new(path);
++            assert_eq!(id.to_string(), path);
++            assert_eq!(
++                id.characteristic(),
++                CharacteristicId::new(if path == "/custom/adapter/device" {
++                    "/custom/adapter"
++                } else {
++                    "/"
++                })
++            );
++        }
++    }
+ 
+     #[test]
+     fn descriptor_characteristic() {
+--- a/src/device.rs
++++ b/src/device.rs
+@@ -27,11 +27,7 @@
+ 
+     /// Get the ID of the Bluetooth adapter on which this device was discovered, e.g. `"hci0"`.
+     pub fn adapter(&self) -> AdapterId {
+-        let index = self
+-            .object_path
+-            .rfind('/')
+-            .expect("DeviceId object_path must contain a slash.");
+-        AdapterId::new(&self.object_path[0..index])
++        AdapterId::new(crate::object_path::parent(&self.object_path))
+     }
+ }
+ 
+@@ -43,14 +39,7 @@
+ 
+ impl Display for DeviceId {
+     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+-        write!(
+-            f,
+-            "{}",
+-            self.object_path
+-                .to_string()
+-                .strip_prefix("/org/bluez/")
+-                .ok_or(fmt::Error)?
+-        )
++        write!(f, "{}", crate::object_path::display(&self.object_path))
+     }
+ }
+ 
+@@ -284,6 +273,22 @@
+     use super::*;
+ 
+     #[test]
++    fn shallow_and_opaque_paths_format_without_panicking() {
++        for path in ["/", "/node", "/custom/adapter/device"] {
++            let id = DeviceId::new(path);
++            assert_eq!(id.to_string(), path);
++            assert_eq!(
++                id.adapter(),
++                AdapterId::new(if path == "/custom/adapter/device" {
++                    "/custom/adapter"
++                } else {
++                    "/"
++                })
++            );
++        }
++    }
++
++    #[test]
+     fn device_adapter() {
+         let adapter_id = AdapterId::new("/org/bluez/hci0");
+         let device_id = DeviceId::new("/org/bluez/hci0/dev_11_22_33_44_55_66");
+--- a/src/introspect.rs
++++ b/src/introspect.rs
+@@ -11,6 +11,22 @@
+     pub interfaces: Vec<Interface>,
+     #[serde(rename = "node", default)]
+     pub nodes: Vec<Node>,
++}
++
++impl Node {
++    pub(crate) fn child_name(&self) -> Result<&str, BluetoothError> {
++        match crate::node_name::validate(self.name.as_deref()) {
++            Ok(name) => Ok(name),
++            Err(crate::node_name::NameError::Missing) => Err(
++                BluetoothError::RequiredPropertyMissing("introspection child node name"),
++            ),
++            Err(crate::node_name::NameError::Invalid) => {
++                Err(BluetoothError::XmlParseError(serde_xml_rs::Error::Custom(
++                    "Invalid introspection child node relative path".into(),
++                )))
++            }
++        }
++    }
+ }
+ 
+ #[derive(Clone, Debug, Deserialize, PartialEq)]
+@@ -134,6 +150,51 @@
+ #[cfg(test)]
+ mod tests {
+     use super::*;
++
++    #[test]
++    fn unnamed_root_is_valid_but_unnamed_child_returns_a_controlled_error() {
++        let root: Node = serde_xml_rs::from_str("<node><node/></node>").unwrap();
++        assert_eq!(root.name, None);
++        assert!(matches!(
++            root.nodes[0].child_name(),
++            Err(BluetoothError::RequiredPropertyMissing(
++                "introspection child node name"
++            ))
++        ));
++    }
++
++    #[test]
++    fn malformed_child_path_components_return_xml_errors() {
++        for name in ["", "service0001//child", "char-1", "desc.1", "serviceé"] {
++            let root: Node =
++                serde_xml_rs::from_str(&format!("<node><node name=\"{name}\"/></node>")).unwrap();
++            assert!(matches!(
++                root.nodes[0].child_name(),
++                Err(BluetoothError::XmlParseError(_))
++            ));
++        }
++    }
++
++    #[test]
++    fn valid_gatt_children_and_empty_lists_are_preserved() {
++        let root: Node = serde_xml_rs::from_str("<node><node name=\"service0001\"/><node name=\"char0002\"/><node name=\"desc0003\"/><node name=\"other_1\"/><node name=\"service0001/child_2\"/></node>").unwrap();
++        assert_eq!(
++            root.nodes
++                .iter()
++                .map(Node::child_name)
++                .collect::<Result<Vec<_>, _>>()
++                .unwrap(),
++            [
++                "service0001",
++                "char0002",
++                "desc0003",
++                "other_1",
++                "service0001/child_2"
++            ]
++        );
++        let empty: Node = serde_xml_rs::from_str("<node/>").unwrap();
++        assert!(empty.nodes.is_empty());
++    }
+ 
+     #[test]
+     fn introspect_root() {
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -8,8 +8,10 @@
+ //! [`BluetoothSession']: struct.BluetoothSession.html
+ 
+ mod adapter;
++mod async_setup;
+ mod bleuuid;
+ mod characteristic;
++mod cleanup;
+ mod descriptor;
+ mod device;
+ mod events;
+@@ -17,8 +19,11 @@
+ mod macaddress;
+ mod messagestream;
+ mod modalias;
++mod node_name;
++mod object_path;
+ mod serde_path;
+ mod service;
++mod signal_queue;
+ 
+ pub use self::adapter::{AdapterId, AdapterInfo};
+ pub use self::bleuuid::{BleUuid, uuid_from_u16, uuid_from_u32};
+@@ -69,6 +74,9 @@
+     /// There was an error talking to the BlueZ daemon over D-Bus.
+     #[error(transparent)]
+     DbusError(#[from] dbus::Error),
++    /// Authentication or registration failed while driving the owned reactor.
++    #[error(transparent)]
++    DbusSetupError(#[from] IOResourceError),
+     /// Error parsing XML for introspection.
+     #[error("Error parsing XML for introspection: {0}")]
+     XmlParseError(#[from] serde_xml_rs::Error),
+@@ -105,6 +113,8 @@
+     DbusConnectionLost(#[source] IOResourceError),
+     #[error("Task failed: {0}")]
+     Join(#[from] JoinError),
++    #[error("D-Bus background work failed: {0}")]
++    Cleanup(String),
+ }
+ 
+ /// The type of transport to use for a scan.
+@@ -266,6 +276,7 @@
+ #[derive(Clone)]
+ pub struct BluetoothSession {
+     connection: Arc<SyncConnection>,
++    cleanup: cleanup::CleanupSender,
+ }
+ 
+ impl Debug for BluetoothSession {
+@@ -279,21 +290,84 @@
+     ///
+     /// Returns a tuple of (join handle, Self).
+     /// If the join handle ever completes then you're in trouble and should
+-    /// probably restart the process.
++    /// inspect the reported error. A clean completion means all session/stream
++    /// owners were released and their match cleanup finished.
+     pub async fn new()
+     -> Result<(impl Future<Output = Result<(), SpawnError>>, Self), BluetoothError> {
++        let (resource, session) = Self::new_resource()?;
++        let dbus_handle = tokio::spawn(resource);
++        Ok((dbus_handle.map(|res| res?), session))
++    }
++
++    /// Establish a session without spawning its D-Bus I/O resource.
++    ///
++    /// The caller must promptly drive the returned future on a Tokio reactor,
++    /// and owns its cancellation and termination. Dropping the future closes
++    /// the transport once remaining session references are released.
++    pub fn new_resource() -> Result<
++        (
++            impl Future<Output = Result<(), SpawnError>> + Send + 'static,
++            Self,
++        ),
++        BluetoothError,
++    > {
+         // Connect to the D-Bus system bus (this is blocking, unfortunately).
+         let (dbus_resource, connection) = dbus_tokio::connection::new_system_sync()?;
+-        // Configure the connection to send signal messages to all matching `MsgMatch`es, as we may
+-        // have streams with overlapping match rules.
++        Ok(Self::resource_from_connection(dbus_resource, connection))
++    }
++
++    /// Establish a system session with awaitable authentication and registration.
++    /// Cancellation drops the inline bootstrap reactor and its transport. Opening
++    /// the socket itself still uses libdbus's synchronous open_private API.
++    /// DBUS_SYSTEM_BUS_ADDRESS overrides the usual Linux system socket path.
++    pub async fn new_resource_async() -> Result<
++        (
++            impl Future<Output = Result<(), SpawnError>> + Send + 'static,
++            Self,
++        ),
++        BluetoothError,
++    > {
++        let address = match std::env::var("DBUS_SYSTEM_BUS_ADDRESS") {
++            Ok(address) => address,
++            Err(std::env::VarError::NotPresent) => "unix:path=/run/dbus/system_bus_socket".into(),
++            Err(std::env::VarError::NotUnicode(_)) => {
++                return Err(dbus::Error::new_failed("DBUS_SYSTEM_BUS_ADDRESS is not UTF-8").into());
++            }
++        };
++        let channel = dbus::channel::Channel::open_private(&address)?;
++        let (resource, connection) = async_setup::register_channel(channel).await?;
++        Ok(Self::resource_from_connection(resource, connection))
++    }
++
++    fn resource_from_connection(
++        dbus_resource: dbus_tokio::connection::IOResource<SyncConnection>,
++        connection: Arc<SyncConnection>,
++    ) -> (
++        impl Future<Output = Result<(), SpawnError>> + Send + 'static,
++        Self,
++    ) {
+         connection.set_signal_match_mode(true);
+-        // The resource is a task that should be spawned onto a tokio compatible
+-        // reactor ASAP. If the resource ever finishes, you lost connection to D-Bus.
+-        let dbus_handle = tokio::spawn(async {
+-            let err = dbus_resource.await;
+-            Err(SpawnError::DbusConnectionLost(err))
+-        });
+-        Ok((dbus_handle.map(|res| res?), BluetoothSession { connection }))
++        let (cleanup, removals) = cleanup::queue();
++        let resource = async move {
++            match cleanup::drive(dbus_resource, removals).await {
++                Ok(Some(error)) => Err(SpawnError::DbusConnectionLost(error)),
++                Ok(None) => Ok(()),
++                Err(message) => Err(SpawnError::Cleanup(message)),
++            }
++        };
++        (
++            resource,
++            BluetoothSession {
++                connection,
++                cleanup,
++            },
++        )
++    }
++
++    /// A match-cleanup or signal-publication failure recorded by this resource.
++    /// Retained across resource cancellation so explicit shutdown can report it.
++    pub fn cleanup_failure(&self) -> Option<String> {
++        self.cleanup.failure()
+     }
+ 
+     /// Powers the given adapter on or off.
+@@ -411,13 +485,7 @@
+         // TODO: See whether there is a way to do this with introspection instead, rather than
+         // getting lots of objects we don't care about.
+         let tree = bluez_root.get_managed_objects().await?;
+-        Ok(tree
+-            .into_iter()
+-            .filter_map(|(object_path, interfaces)| {
+-                let adapter_properties = OrgBluezAdapter1Properties::from_interfaces(&interfaces)?;
+-                AdapterInfo::from_properties(AdapterId { object_path }, adapter_properties).ok()
+-            })
+-            .collect())
++        adapters_from_objects(tree)
+     }
+ 
+     /// Get a list of all Bluetooth devices which have been discovered so far.
+@@ -430,14 +498,7 @@
+         );
+         let tree = bluez_root.get_managed_objects().await?;
+ 
+-        let devices = tree
+-            .into_iter()
+-            .filter_map(|(object_path, interfaces)| {
+-                let device_properties = OrgBluezDevice1Properties::from_interfaces(&interfaces)?;
+-                DeviceInfo::from_properties(DeviceId { object_path }, device_properties).ok()
+-            })
+-            .collect();
+-        Ok(devices)
++        devices_from_objects(tree)
+     }
+ 
+     /// Get a list of all Bluetooth devices which have been discovered so far on a given adapter.
+@@ -465,7 +526,7 @@
+             .await?;
+         let mut services = vec![];
+         for subnode in device_node.nodes {
+-            let subnode_name = subnode.name.as_ref().unwrap();
++            let subnode_name = subnode.child_name()?;
+             // Service paths are always of the form
+             // /org/bluez/{hci0,hci1,...}/dev_XX_XX_XX_XX_XX_XX/serviceXXXX
+             if subnode_name.starts_with("service") {
+@@ -493,7 +554,7 @@
+         let service_node = self.service(service).introspect_parse().await?;
+         let mut characteristics = vec![];
+         for subnode in service_node.nodes {
+-            let subnode_name = subnode.name.as_ref().unwrap();
++            let subnode_name = subnode.child_name()?;
+             // Characteristic paths are always of the form
+             // /org/bluez/{hci0,hci1,...}/dev_XX_XX_XX_XX_XX_XX/serviceXXXX/charYYYY
+             if subnode_name.starts_with("char") {
+@@ -517,7 +578,7 @@
+             .await?;
+         let mut descriptors = vec![];
+         for subnode in characteristic_node.nodes {
+-            let subnode_name = subnode.name.as_ref().unwrap();
++            let subnode_name = subnode.child_name()?;
+             // Service paths are always of the form
+             // /org/bluez/{hci0,hci1,...}/dev_XX_XX_XX_XX_XX_XX/serviceXXXX/charYYYY/descZZZZ
+             if subnode_name.starts_with("desc") {
+@@ -912,8 +973,9 @@
+     ) -> Result<impl Stream<Item = BluetoothEvent> + use<P>, BluetoothError> {
+         let mut message_streams = vec![];
+         for match_rule in BluetoothEvent::match_rules(object.cloned(), device_discovery) {
+-            let msg_match = self.connection.add_match(match_rule).await?;
+-            message_streams.push(MessageStream::new(msg_match, self.connection.clone()));
++            let stream =
++                MessageStream::new(match_rule, self.connection.clone(), self.cleanup.clone());
++            message_streams.push(stream.enable_remote().await?);
+         }
+         Ok(select_all(message_streams)
+             .flat_map(|message| stream::iter(BluetoothEvent::message_to_events(message))))
+@@ -927,3 +989,150 @@
+     }
+     map
+ }
++
++// Parse only the relevant interface, but preserve malformed records as errors.
++// A valid unrelated D-Bus object is not an adapter or peripheral.
++type ManagedObjects = HashMap<Path<'static>, HashMap<String, PropMap>>;
++
++fn adapters_from_objects(tree: ManagedObjects) -> Result<Vec<AdapterInfo>, BluetoothError> {
++    tree.into_iter()
++        .filter_map(|(object_path, interfaces)| {
++            OrgBluezAdapter1Properties::from_interfaces(&interfaces).map(|properties| {
++                AdapterInfo::from_properties(AdapterId { object_path }, properties)
++            })
++        })
++        .collect()
++}
++
++fn devices_from_objects(tree: ManagedObjects) -> Result<Vec<DeviceInfo>, BluetoothError> {
++    tree.into_iter()
++        .filter_map(|(object_path, interfaces)| {
++            OrgBluezDevice1Properties::from_interfaces(&interfaces)
++                .map(|properties| DeviceInfo::from_properties(DeviceId { object_path }, properties))
++        })
++        .collect()
++}
++
++#[cfg(test)]
++mod managed_object_tests {
++    use super::*;
++
++    fn tree(interface: &str, properties: PropMap) -> ManagedObjects {
++        HashMap::from([(
++            Path::new("/org/bluez/hci0/dev_00_11_22_33_44_55").unwrap(),
++            HashMap::from([(interface.to_string(), properties)]),
++        )])
++    }
++
++    #[test]
++    fn unrelated_objects_and_empty_trees_are_valid() {
++        assert!(
++            adapters_from_objects(tree("org.example.Other", PropMap::new()))
++                .unwrap()
++                .is_empty()
++        );
++        assert!(
++            devices_from_objects(tree("org.example.Other", PropMap::new()))
++                .unwrap()
++                .is_empty()
++        );
++        assert!(
++            adapters_from_objects(ManagedObjects::new())
++                .unwrap()
++                .is_empty()
++        );
++        assert!(
++            devices_from_objects(ManagedObjects::new())
++                .unwrap()
++                .is_empty()
++        );
++    }
++
++    #[test]
++    fn malformed_adapter_and_device_records_preserve_required_property_errors() {
++        assert!(matches!(
++            adapters_from_objects(tree(ORG_BLUEZ_ADAPTER1_NAME, PropMap::new())),
++            Err(BluetoothError::RequiredPropertyMissing("Address"))
++        ));
++        assert!(matches!(
++            devices_from_objects(tree(ORG_BLUEZ_DEVICE1_NAME, PropMap::new())),
++            Err(BluetoothError::RequiredPropertyMissing("Address"))
++        ));
++    }
++
++    fn valid_properties(adapter: bool) -> PropMap {
++        let mut properties = PropMap::new();
++        for (name, value) in [("Address", "00:11:22:33:44:55"), ("AddressType", "public")] {
++            properties.insert(name.to_string(), Variant(Box::new(value.to_string())));
++        }
++        if adapter {
++            properties.insert(
++                "Modalias".to_string(),
++                Variant(Box::new("usb:v1234p5678d90AB".to_string())),
++            );
++            for name in ["Name", "Alias"] {
++                properties.insert(name.to_string(), Variant(Box::new("adapter".to_string())));
++            }
++        }
++        let flags: &[&str] = if adapter {
++            &["Powered", "Discovering"]
++        } else {
++            &[
++                "Paired",
++                "Connected",
++                "ServicesResolved",
++                "Trusted",
++                "Blocked",
++                "LegacyPairing",
++            ]
++        };
++        for name in flags {
++            properties.insert((*name).to_string(), Variant(Box::new(false)));
++        }
++        properties
++    }
++
++    #[test]
++    fn valid_records_are_preserved_but_mixed_invalid_records_fail() {
++        for (interface, adapter) in [
++            (ORG_BLUEZ_ADAPTER1_NAME, true),
++            (ORG_BLUEZ_DEVICE1_NAME, false),
++        ] {
++            let objects = tree(interface, valid_properties(adapter));
++            if adapter {
++                assert_eq!(adapters_from_objects(objects).unwrap().len(), 1);
++            } else {
++                assert_eq!(devices_from_objects(objects).unwrap().len(), 1);
++            }
++            let mut objects = tree(interface, valid_properties(adapter));
++            objects.insert(
++                Path::new("/org/bluez/hci1").unwrap(),
++                HashMap::from([(interface.to_string(), PropMap::new())]),
++            );
++            if adapter {
++                assert!(adapters_from_objects(objects).is_err());
++            } else {
++                assert!(devices_from_objects(objects).is_err());
++            }
++        }
++    }
++
++    #[test]
++    fn malformed_addresses_preserve_the_parse_error() {
++        for interface in [ORG_BLUEZ_ADAPTER1_NAME, ORG_BLUEZ_DEVICE1_NAME] {
++            let properties = HashMap::from([(
++                "Address".to_string(),
++                Variant(Box::new("invalid".to_string()) as Box<dyn dbus::arg::RefArg>),
++            )]);
++            let error = if interface == ORG_BLUEZ_ADAPTER1_NAME {
++                adapters_from_objects(tree(interface, properties)).unwrap_err()
++            } else {
++                devices_from_objects(tree(interface, properties)).unwrap_err()
++            };
++            assert!(
++                matches!(error, BluetoothError::MacAddressParseError(_)),
++                "{error:?}"
++            );
++        }
++    }
++}
+--- a/src/messagestream.rs
++++ b/src/messagestream.rs
+@@ -1,26 +1,88 @@
++use crate::cleanup::CleanupSender;
+ use dbus::Message;
+-use dbus::nonblock::{MsgMatch, SyncConnection};
++use dbus::channel::{MatchingReceiver, Token};
++use dbus::message::MatchRule;
++use dbus::nonblock::SyncConnection;
+ use futures::Stream;
+-use futures::channel::mpsc::UnboundedReceiver;
++use std::future::Future;
+ use std::pin::Pin;
+ use std::sync::Arc;
++use std::sync::atomic::{AtomicBool, Ordering};
+ use std::task::{Context, Poll};
+-
+-/// Wrapper for a stream of D-Bus messages which automatically removes the `MsgMatch` from the D-Bus
+-/// connection when it is dropped.
++use tokio::sync::mpsc::Receiver;
++
++type Setup = Pin<Box<dyn Future<Output = Result<(), dbus::Error>> + Send>>;
++
++/// Owns local publication before AddMatch starts, including cancellation while
++/// its acknowledgement is pending. Cleanup runs in the owned transport resource.
+ pub struct MessageStream {
+-    msg_match: Option<MsgMatch>,
+-    events: UnboundedReceiver<Message>,
++    token: Option<Token>,
++    pending: Option<Setup>,
++    confirmed: bool,
++    rule: String,
++    retired: Arc<AtomicBool>,
++    events: Receiver<Message>,
+     connection: Arc<SyncConnection>,
++    cleanup: CleanupSender,
+ }
+ 
+ impl MessageStream {
+-    pub fn new(msg_match: MsgMatch, connection: Arc<SyncConnection>) -> Self {
+-        let (msg_match, events) = msg_match.msg_stream();
++    pub(crate) fn new(
++        rule: MatchRule<'static>,
++        connection: Arc<SyncConnection>,
++        cleanup: CleanupSender,
++    ) -> Self {
++        let failure = cleanup.clone();
++        let remote_rule = rule.match_str();
++        let retired = Arc::new(AtomicBool::new(false));
++        let callback_retired = retired.clone();
++        let (mut sender, events) = crate::signal_queue::queue(move || {
++            failure.record_failure("D-Bus signal event queue overflow");
++        });
++        let token = connection.start_receive(
++            rule,
++            Box::new(move |message, _| {
++                if callback_retired.load(Ordering::SeqCst) {
++                    return false;
++                }
++                sender.push(message);
++                // Keep overflow cleanup under the owner, but retire a callback
++                // already in dispatch when its stream was dropped.
++                !callback_retired.load(Ordering::SeqCst)
++            }),
++        );
+         Self {
+-            msg_match: Some(msg_match),
++            token: Some(token),
++            pending: None,
++            confirmed: false,
++            rule: remote_rule,
++            retired,
+             events,
+             connection,
++            cleanup,
++        }
++    }
++
++    pub(crate) async fn enable_remote(mut self) -> Result<Self, crate::BluetoothError> {
++        let connection = self.connection.clone();
++        let rule = self.rule.clone();
++        // This future is created only when enable_remote is first polled. Its
++        // first poll sends AddMatch before returning Pending; unpolled setup
++        // cannot start registration later through Drop cleanup.
++        self.pending = Some(Box::pin(
++            async move { connection.add_match_no_cb(&rule).await },
++        ));
++        let result = match self.pending.as_mut() {
++            Some(pending) => pending.await,
++            None => return Err(dbus::Error::new_failed("Missing owned AddMatch setup").into()),
++        };
++        self.pending = None;
++        match result {
++            Ok(()) => {
++                self.confirmed = true;
++                Ok(self)
++            }
++            Err(error) => Err(error.into()),
+         }
+     }
+ }
+@@ -29,14 +91,143 @@
+     type Item = Message;
+ 
+     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+-        Pin::new(&mut self.events).poll_next(cx)
++        self.events.poll_recv(cx)
+     }
+ }
+ 
+ impl Drop for MessageStream {
+     fn drop(&mut self) {
++        self.retired.store(true, Ordering::SeqCst);
++        self.events.close();
+         let connection = self.connection.clone();
+-        let msg_match = self.msg_match.take().unwrap();
+-        tokio::spawn(async move { connection.remove_match(msg_match.token()).await.unwrap() });
+-    }
+-}
++        let Some(token) = self.token.take() else {
++            return;
++        };
++        // Close publication even when the callback is temporarily in dispatch.
++        // Remote removal is driven by
++        // the same owned future as D-Bus I/O, never an unowned Drop task.
++        if let Some((_, callback)) = connection.stop_receive(token) {
++            drop(callback);
++        }
++        // The callback can be absent while native dispatch holds it; remote
++        // cleanup must not depend on finding it in the local registry.
++        let rule = self.rule.clone();
++        let pending = self.pending.take();
++        if pending.is_none() && !self.confirmed {
++            return;
++        }
++        self.cleanup.push(async move {
++            crate::cleanup::remove_after_setup(
++                async move {
++                    match pending {
++                        Some(pending) => pending
++                            .await
++                            .map_err(|error| format!("D-Bus canceled AddMatch failed: {error}")),
++                        None => Ok(()),
++                    }
++                },
++                async move {
++                    connection
++                        .remove_match_no_cb(&rule)
++                        .await
++                        .map_err(|error| format!("D-Bus RemoveMatch failed: {error}"))
++                },
++            )
++            .await
++        });
++    }
++}
++
++#[cfg(all(test, unix))]
++mod tests {
++    use super::*;
++    use dbus::channel::Channel;
++    use std::os::unix::net::UnixListener;
++    use std::sync::atomic::AtomicUsize;
++
++    struct SocketPath(std::path::PathBuf);
++    impl Drop for SocketPath {
++        fn drop(&mut self) {
++            let _ = std::fs::remove_file(&self.0);
++        }
++    }
++
++    fn connection() -> (
++        Arc<SyncConnection>,
++        SocketPath,
++        UnixListener,
++        std::os::unix::net::UnixStream,
++    ) {
++        static NEXT: AtomicUsize = AtomicUsize::new(0);
++        let path = SocketPath(std::path::PathBuf::from(format!(
++            "/tmp/openble-match-{}-{}",
++            std::process::id(),
++            NEXT.fetch_add(1, Ordering::SeqCst)
++        )));
++        let listener = UnixListener::bind(&path.0).unwrap();
++        // open_private opens transport without bus registration. No daemon,
++        // authentication reply, system-bus or Bluetooth service is involved.
++        let channel = Channel::open_private(&format!("unix:path={}", path.0.display())).unwrap();
++        let (peer, _) = listener.accept().unwrap();
++        (
++            Arc::new(SyncConnection::from(channel)),
++            path,
++            listener,
++            peer,
++        )
++    }
++
++    #[tokio::test]
++    async fn unpolled_setup_retires_local_callback_without_starting_remote_work() {
++        let (connection, _path, _listener, _peer) = connection();
++        let (sender, cleanup) = crate::cleanup::queue();
++        let stream = MessageStream::new(
++            MatchRule::new_signal("org.example.Test", "Changed"),
++            connection.clone(),
++            sender,
++        );
++        let token = stream.token.unwrap();
++        drop(stream.enable_remote());
++        assert!(connection.stop_receive(token).is_none());
++        assert_eq!(
++            Arc::strong_count(&connection),
++            1,
++            "unpolled setup queued remote work"
++        );
++        drop(cleanup);
++    }
++
++    #[tokio::test]
++    async fn cancellation_owns_pending_add_even_when_local_callback_is_in_dispatch() {
++        let (connection, _path, _listener, _peer) = connection();
++        let (sender, cleanup) = crate::cleanup::queue();
++        let stream = MessageStream::new(
++            MatchRule::new_signal("org.example.Test", "Changed"),
++            connection.clone(),
++            sender,
++        );
++        let token = stream.token.unwrap();
++        let mut setup = Box::pin(stream.enable_remote());
++        assert!(futures::poll!(setup.as_mut()).is_pending());
++        // Native dispatch removes the callback from the registry while calling
++        // it. Reproduce that ownership state before the setup future is dropped.
++        let (_, mut callback) = connection.stop_receive(token).unwrap();
++        drop(setup);
++        let message = Message::new_signal("/test", "org.example.Test", "Changed").unwrap();
++        assert!(
++            !callback(message, &connection),
++            "retired callback republished a value"
++        );
++        drop(callback);
++        assert!(
++            Arc::strong_count(&connection) > 1,
++            "pending AddMatch was discarded"
++        );
++        drop(cleanup);
++        assert_eq!(
++            Arc::strong_count(&connection),
++            1,
++            "canceled cleanup retained its connection"
++        );
++    }
++}
+--- a/src/node_name.rs
++++ b/src/node_name.rs
+@@ -0,0 +1,57 @@
++//! A D-Bus introspection child has a nonempty relative object path.
++#[derive(Debug, PartialEq, Eq)]
++pub(crate) enum NameError {
++    Missing,
++    Invalid,
++}
++
++pub(crate) fn validate(name: Option<&str>) -> Result<&str, NameError> {
++    let name = name.ok_or(NameError::Missing)?;
++    if !name.split('/').all(|component| {
++        !component.is_empty()
++            && component
++                .bytes()
++                .all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
++    }) {
++        return Err(NameError::Invalid);
++    }
++    Ok(name)
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn missing_child_name_is_a_controlled_error() {
++        assert_eq!(validate(None), Err(NameError::Missing));
++    }
++
++    #[test]
++    fn invalid_child_names_are_rejected_before_path_construction() {
++        for prefix in ["service", "char", "desc"] {
++            for suffix in ["//child", "/", "-1", ".1", " child", "é", ":1", "\0"] {
++                let name = format!("{prefix}{suffix}");
++                assert_eq!(validate(Some(&name)), Err(NameError::Invalid), "{name:?}");
++            }
++        }
++        for name in ["", "/service0001", "../char0001"] {
++            assert_eq!(validate(Some(name)), Err(NameError::Invalid));
++        }
++    }
++
++    #[test]
++    fn valid_names_including_unrelated_siblings_are_preserved() {
++        for name in [
++            "service0001",
++            "char0002",
++            "desc0003",
++            "other_1",
++            "_",
++            "123",
++            "service0001/child_2",
++        ] {
++            assert_eq!(validate(Some(name)), Ok(name));
++        }
++    }
++}
+--- a/src/object_path.rs
++++ b/src/object_path.rs
+@@ -0,0 +1,45 @@
++//! Pure path handling for already validated D-Bus paths. Root/shallow paths
++//! must never create an empty path or make opaque-ID formatting fail.
++
++pub(crate) fn parent(path: &str) -> &str {
++    match path.rsplit_once('/') {
++        Some(("", _)) | None => "/",
++        Some((parent, _)) => parent,
++    }
++}
++
++pub(crate) fn display(path: &str) -> &str {
++    path.strip_prefix("/org/bluez/").unwrap_or(path)
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn root_and_shallow_parents_remain_valid_paths() {
++        assert_eq!(parent("/"), "/");
++        assert_eq!(parent("/node"), "/");
++        assert_eq!(parent("/custom/node"), "/custom");
++    }
++
++    #[test]
++    fn normal_bluez_identity_and_hierarchy_are_unchanged() {
++        let path = "/org/bluez/hci0/dev_11_22_33_44_55_66/service0001/char0002/desc0003";
++        assert_eq!(
++            display(path),
++            "hci0/dev_11_22_33_44_55_66/service0001/char0002/desc0003"
++        );
++        assert_eq!(
++            parent(path),
++            "/org/bluez/hci0/dev_11_22_33_44_55_66/service0001/char0002"
++        );
++    }
++
++    #[test]
++    fn opaque_paths_outside_expected_prefix_are_preserved() {
++        for path in ["/", "/node", "/org/bluez", "/custom/adapter/device"] {
++            assert_eq!(display(path), path);
++        }
++    }
++}
+--- a/src/service.rs
++++ b/src/service.rs
+@@ -21,11 +21,7 @@
+ 
+     /// Get the ID of the device on which this service was advertised.
+     pub fn device(&self) -> DeviceId {
+-        let index = self
+-            .object_path
+-            .rfind('/')
+-            .expect("ServiceId object_path must contain a slash.");
+-        DeviceId::new(&self.object_path[0..index])
++        DeviceId::new(crate::object_path::parent(&self.object_path))
+     }
+ }
+ 
+@@ -37,14 +33,7 @@
+ 
+ impl Display for ServiceId {
+     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+-        write!(
+-            f,
+-            "{}",
+-            self.object_path
+-                .to_string()
+-                .strip_prefix("/org/bluez/")
+-                .ok_or(fmt::Error)?
+-        )
++        write!(f, "{}", crate::object_path::display(&self.object_path))
+     }
+ }
+ 
+@@ -65,6 +54,22 @@
+     use super::*;
+ 
+     #[test]
++    fn shallow_and_opaque_paths_format_without_panicking() {
++        for path in ["/", "/node", "/custom/adapter/device"] {
++            let id = ServiceId::new(path);
++            assert_eq!(id.to_string(), path);
++            assert_eq!(
++                id.device(),
++                DeviceId::new(if path == "/custom/adapter/device" {
++                    "/custom/adapter"
++                } else {
++                    "/"
++                })
++            );
++        }
++    }
++
++    #[test]
+     fn service_device() {
+         let device_id = DeviceId::new("/org/bluez/hci0/dev_11_22_33_44_55_66");
+         let service_id = ServiceId::new("/org/bluez/hci0/dev_11_22_33_44_55_66/service0022");
+--- a/src/signal_queue.rs
++++ b/src/signal_queue.rs
+@@ -0,0 +1,107 @@
++//! Bounded synchronous signal publication. Overflow retires publication and
++//! reports once; the caller retains the match until its normal cleanup.
++use tokio::sync::mpsc;
++
++const CAPACITY: usize = 256;
++
++pub(crate) struct SignalQueue<T, F> {
++    sender: mpsc::Sender<T>,
++    overflow: F,
++    retired: bool,
++}
++
++pub(crate) fn queue<T, F: Fn()>(overflow: F) -> (SignalQueue<T, F>, mpsc::Receiver<T>) {
++    let (sender, receiver) = mpsc::channel(CAPACITY);
++    (
++        SignalQueue {
++            sender,
++            overflow,
++            retired: false,
++        },
++        receiver,
++    )
++}
++
++impl<T, F: Fn()> SignalQueue<T, F> {
++    pub(crate) fn push(&mut self, value: T) {
++        if self.retired {
++            return;
++        }
++        match self.sender.try_send(value) {
++            Ok(()) => {}
++            Err(mpsc::error::TrySendError::Full(_)) => {
++                self.retired = true;
++                (self.overflow)();
++            }
++            Err(mpsc::error::TrySendError::Closed(_)) => {
++                // Consumer teardown is not an overflow. Keep the D-Bus match
++                // registered until MessageStream::drop removes it explicitly.
++                self.retired = true;
++            }
++        }
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use std::sync::{
++        Arc,
++        atomic::{AtomicUsize, Ordering},
++    };
++
++    struct Live(Arc<AtomicUsize>);
++    impl Drop for Live {
++        fn drop(&mut self) {
++            self.0.fetch_sub(1, Ordering::SeqCst);
++        }
++    }
++
++    #[test]
++    fn overflow_bounds_retention_reports_once_and_retires_publication() {
++        let live = Arc::new(AtomicUsize::new(0));
++        let failures = Arc::new(AtomicUsize::new(0));
++        let observed = failures.clone();
++        let (mut sender, mut receiver) = queue(move || {
++            observed.fetch_add(1, Ordering::SeqCst);
++        });
++        for _ in 0..CAPACITY + 20 {
++            live.fetch_add(1, Ordering::SeqCst);
++            sender.push(Live(live.clone()));
++        }
++        assert_eq!(live.load(Ordering::SeqCst), CAPACITY);
++        assert_eq!(failures.load(Ordering::SeqCst), 1);
++        drop(receiver.try_recv().unwrap());
++        live.fetch_add(1, Ordering::SeqCst);
++        sender.push(Live(live.clone()));
++        assert_eq!(live.load(Ordering::SeqCst), CAPACITY - 1);
++        assert_eq!(failures.load(Ordering::SeqCst), 1);
++        drop(receiver);
++        assert_eq!(live.load(Ordering::SeqCst), 0);
++    }
++
++    #[test]
++    fn closed_consumer_is_not_an_overflow_and_drops_new_values() {
++        let live = Arc::new(AtomicUsize::new(1));
++        let (mut sender, receiver) = queue(|| panic!("consumer close is not an overflow"));
++        drop(receiver);
++        sender.push(Live(live.clone()));
++        assert_eq!(live.load(Ordering::SeqCst), 0);
++        live.fetch_add(1, Ordering::SeqCst);
++        sender.push(Live(live.clone()));
++        assert_eq!(live.load(Ordering::SeqCst), 0);
++    }
++
++    #[tokio::test]
++    async fn cancelled_receive_preserves_fifo_and_last_sender_closes() {
++        use futures::FutureExt;
++        let (mut sender, mut receiver) = queue(|| panic!("unexpected overflow"));
++        assert!(receiver.recv().now_or_never().is_none());
++        sender.push(1_u8);
++        sender.push(2);
++        assert_eq!(receiver.recv().await, Some(1));
++        assert_eq!(receiver.recv().await, Some(2));
++        drop(sender);
++        assert_eq!(receiver.recv().await, None);
++    }
++}

@@ -1,0 +1,18 @@
+# Check the full resolved graph, including target-specific and development crates.
+[graph]
+all-features = true
+
+[advisories]
+db-urls = ["https://github.com/RustSec/advisory-db"]
+yanked = "deny"
+unmaintained = "all"
+maximum-db-staleness = "P7D"
+
+[licenses]
+confidence-threshold = 0.95
+include-dev = true
+allow = ["MIT", "Apache-2.0", "BSD-3-Clause", "Unicode-3.0", "Zlib"]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

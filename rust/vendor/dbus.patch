@@ -1,0 +1,481 @@
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -4,15 +4,15 @@
+ 
+ [[package]]
+ name = "bitflags"
+-version = "2.13.0"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "b4388bee8683e3d04af747c73422af53102d2bd24d9eadb6cbc100baef4b43f8"
++version = "2.13.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "3ded4057c258ba199e2d26386d3af3780957ecaee6c4ef4041c6b4b8b97c0b06"
+ 
+ [[package]]
+ name = "cc"
+-version = "1.2.65"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "e228eec9be7c17ccb640b59b36a5cd805ea2a564a4c5e162c2f659fea30d3b96"
++version = "1.4.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "5d262e149917187838d5b42777c8253bcb64500067342904e7d429499a6f277e"
+ dependencies = [
+  "find-msvc-tools",
+  "shlex",
+@@ -20,9 +20,9 @@
+ 
+ [[package]]
+ name = "cfg-if"
+-version = "1.0.4"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
++version = "1.0.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
+ 
+ [[package]]
+ name = "dbus"
+@@ -49,36 +49,36 @@
+ 
+ [[package]]
+ name = "fastrand"
+-version = "2.4.1"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "9f1f227452a390804cdb637b74a86990f2a7d7ba4b7d5693aac9b4dd6defd8d6"
++version = "2.5.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
+ 
+ [[package]]
+ name = "find-msvc-tools"
+-version = "0.1.9"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582"
++version = "0.1.10"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "26b73573e6edcd2af0cdf47bd6cb58f0b3839491263c314eaad1ccf24430e1de"
+ 
+ [[package]]
+ name = "futures-channel"
+-version = "0.3.32"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "07bbe89c50d7a535e539b8c17bc0b49bdb77747034daa8087407d655f3f7cc1d"
++version = "0.3.34"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "b1f9e3d69d39e4862ffed03ed071a76f9a13ba1d9109d355b0f0aa6b15e393c4"
+ dependencies = [
+  "futures-core",
+ ]
+ 
+ [[package]]
+ name = "futures-core"
+-version = "0.3.32"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "7e3450815272ef58cec6d564423f6e755e25379b217b0bc688e295ba24df6b1d"
++version = "0.3.34"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "92d699e522242e69e3003b94ecc1f960f3a5e015aa7c5d7486e65ad01dd94f5e"
+ 
+ [[package]]
+ name = "futures-executor"
+-version = "0.3.32"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "baf29c38818342a3b26b5b923639e7b1f4a61fc5e76102d4b1981c6dc7a7579d"
++version = "0.3.34"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "031b47cf1a3c6cc8bc2fc76cd437f521619387907d469316e7c0bc278f1f5432"
+ dependencies = [
+  "futures-core",
+  "futures-task",
+@@ -87,15 +87,15 @@
+ 
+ [[package]]
+ name = "futures-task"
+-version = "0.3.32"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "037711b3d59c33004d3856fbdc83b99d4ff37a24768fa1be9ce3538a1cde4393"
++version = "0.3.34"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "cd417de3d1d015fc3bfd2b1ea46dfc7bab72ef86f1cc7cc9c78e728b34a6d1fd"
+ 
+ [[package]]
+ name = "futures-util"
+-version = "0.3.32"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "389ca41296e6190b48053de0321d02a77f32f8a5d2461dd38762c0593805c6d6"
++version = "0.3.34"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "0d50a92467f8ba5dd6e3ee5d4bd04d73ab2e4e1c44474a0674821dfce14b79bc"
+ dependencies = [
+  "futures-core",
+  "futures-task",
+@@ -116,9 +116,9 @@
+ 
+ [[package]]
+ name = "libc"
+-version = "0.2.186"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
++version = "0.2.189"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
+ 
+ [[package]]
+ name = "libdbus-sys"
+@@ -150,9 +150,9 @@
+ 
+ [[package]]
+ name = "pkg-config"
+-version = "0.3.33"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "19f132c84eca552bf34cab8ec81f1c1dcc229b811638f9d283dceabe58c5569e"
++version = "0.3.34"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "f6b464fbc74e149a392436b17d523f769e057cb6877f6a5c4618bc6f11800548"
+ 
+ [[package]]
+ name = "r-efi"
+--- a/src/channel/ffichannel.rs
++++ b/src/channel/ffichannel.rs
+@@ -6,6 +6,11 @@
+ use std::ffi::CStr;
+ use std::os::raw::{c_void, c_int};
+ use super::{BusType, Watch, WatchFd};
++
++// Public libdbus API omitted by the pinned libdbus-sys bindings.
++extern "C" {
++    fn dbus_bus_set_unique_name(conn: *mut ffi::DBusConnection, name: *const std::os::raw::c_char) -> u32;
++}
+ 
+ #[derive(Debug)]
+ struct ConnHandle(*mut ffi::DBusConnection, bool);
+@@ -190,6 +195,35 @@
+         }
+     }
+ 
++    /// Installs the unique name returned by an already completed asynchronous Hello.
++    /// This does not authenticate or register the connection. The name is copied
++    /// by libdbus and may only be installed once. Exclusive access prevents
++    /// invalidating a name borrowed through `unique_name`.
++    pub fn set_unique_name(&mut self, name: &str) -> Result<(), Error> {
++        if self.unique_name().is_some() {
++            return Err(Error::new_failed("D-Bus unique name is already installed"));
++        }
++        // libdbus accepts a bare ':' and other empty unique-name elements.
++        // Hello must return a colon-prefixed name with at least two elements.
++        if !name.starts_with(':') || !name[1..].contains('.')
++            || name[1..].split('.').any(|part| part.is_empty()) {
++            return Err(Error::new_failed("Expected a D-Bus unique name"));
++        }
++        let name = std::ffi::CString::new(name)
++            .map_err(|_| Error::new_failed("D-Bus unique name contains a NUL byte"))?;
++        let mut error = Error::empty();
++        // Validate even when the crate's no-string-validation feature is enabled.
++        if unsafe { ffi::dbus_validate_bus_name(name.as_ptr(), error.get_mut()) } == 0 {
++            return Err(error);
++        }
++        // Exclusive ownership and the check above satisfy libdbus's single-set
++        // precondition. The C API copies this temporary string before returning.
++        if unsafe { dbus_bus_set_unique_name(self.conn(), name.as_ptr()) } == 0 {
++            return Err(Error::new_failed("Failed to copy D-Bus unique name"));
++        }
++        Ok(())
++    }
++
+     /// Gets whether the connection is currently open.
+     pub fn is_connected(&self) -> bool {
+         unsafe { ffi::dbus_connection_get_is_connected(self.conn()) != 0 }
+--- a/src/nonblock.rs
++++ b/src/nonblock.rs
+@@ -67,7 +67,7 @@
+ }
+ 
+ 
+-type Replies<F> = HashMap<Token, F>;
++type Replies<F> = HashMap<Token, (Arc<()>, F)>;
+ 
+ /// A connection to D-Bus, thread local + async version
+ pub struct LocalConnection {
+@@ -93,7 +93,7 @@
+ pub struct SyncConnection {
+     channel: Channel,
+     filters: Mutex<Filters<SyncFilterCb>>,
+-    replies: Mutex<Replies<SyncRepliesCb>>,
++    replies: Arc<Mutex<Replies<SyncRepliesCb>>>,
+     timeout_maker: Option<TimeoutMakerCb>,
+     waker: Option<WakerCb>,
+     all_signal_matches: AtomicBool,
+@@ -124,6 +124,13 @@
+ 
+ impl AsRef<Channel> for $c {
+     fn as_ref(&self) -> &Channel { &self.channel }
++}
++
++impl $c {
++    /// Consumes this connection and returns its owned transport channel.
++    /// Stop and join its I/O resource first. Pending replies and filters are
++    /// discarded; this is intended for exclusive bootstrap ownership transfer.
++    pub fn into_channel(self) -> Channel { self.channel }
+ }
+ 
+ impl Sender for $c {
+@@ -160,7 +167,7 @@
+             let mut replies = self.replies_mut();
+             self.channel.send(msg).map(|x| {
+                 let t = Token(x as usize);
+-                replies.insert(t, f);
++                replies.insert(t, (Arc::new(()), f));
+                 t
+             })
+         };
+@@ -168,12 +175,16 @@
+             // Non-blocking send failed
+             // Wake up task that will send the message
+             if self.waker.as_ref().map(|wake| wake().is_err() ).unwrap_or(false) {
++                if let Ok(id) = token { drop(self.cancel_reply(id)); }
+                 return Err(());
+             }
+         }
+         token
+     }
+-    fn cancel_reply(&self, id: Token) -> Option<Self::F> { self.replies_mut().remove(&id) }
++    fn cancel_reply(&self, id: Token) -> Option<Self::F> { self.replies_mut().remove(&id).map(|(_, f)| f) }
++    fn reply_canceller(&self, id: Token) -> Option<Box<dyn FnOnce() + Send>> {
++        self.method_reply_canceller(id)
++    }
+     fn make_f<G: FnOnce(Message, &Self) + Send + 'static>(g: G) -> Self::F { Box::new(g) }
+     fn timeout_maker(&self) -> Option<TimeoutMakerCb> { self.timeout_maker }
+     fn set_timeout_maker(&mut self, f: Option<TimeoutMakerCb>) -> Option<TimeoutMakerCb> {
+@@ -188,7 +199,8 @@
+ impl Process for $c {
+     fn process_one(&self, msg: Message) {
+         if let Some(serial) = msg.get_reply_serial() {
+-            if let Some(f) = self.replies_mut().remove(&Token(serial as usize)) {
++            let reply = self.replies_mut().remove(&Token(serial as usize));
++            if let Some((_, f)) = reply {
+                 f(msg, self);
+                 return;
+             }
+@@ -325,16 +337,35 @@
+ connimpl!(SyncConnection, SyncFilterCb, SyncRepliesCb, Send);
+ 
+ impl Connection {
++    fn method_reply_canceller(&self, _: Token) -> Option<Box<dyn FnOnce() + Send>> { None }
+     fn filters_mut(&self) -> std::cell::RefMut<'_, Filters<FilterCb>> { self.filters.borrow_mut() }
+     fn replies_mut(&self) -> std::cell::RefMut<'_, Replies<RepliesCb>> { self.replies.borrow_mut() }
+ }
+ 
+ impl LocalConnection {
++    fn method_reply_canceller(&self, _: Token) -> Option<Box<dyn FnOnce() + Send>> { None }
+     fn filters_mut(&self) -> std::cell::RefMut<'_, Filters<LocalFilterCb>> { self.filters.borrow_mut() }
+     fn replies_mut(&self) -> std::cell::RefMut<'_, Replies<LocalRepliesCb>> { self.replies.borrow_mut() }
+ }
+ 
+ impl SyncConnection {
++    fn method_reply_canceller(&self, id: Token) -> Option<Box<dyn FnOnce() + Send>> {
++        let generation = self.replies_mut().get(&id).map(|(generation, _)| generation.clone())?;
++        let replies = Arc::downgrade(&self.replies);
++        Some(Box::new(move || {
++            if let Some(replies) = replies.upgrade() {
++                // Identity protects a later registration if the native serial
++                // is reused. Drop the callback outside the registry lock.
++                let callback = {
++                    let mut replies = replies.lock().unwrap_or_else(|p| p.into_inner());
++                    if replies.get(&id).map(|(current, _)| Arc::ptr_eq(current, &generation)).unwrap_or(false) {
++                        replies.remove(&id)
++                    } else { None }
++                };
++                drop(callback);
++            }
++        }))
++    }
+     fn filters_mut(&self) -> std::sync::MutexGuard<'_, Filters<SyncFilterCb>> { self.filters.lock().unwrap() }
+     fn replies_mut(&self) -> std::sync::MutexGuard<'_, Replies<SyncRepliesCb>> { self.replies.lock().unwrap() }
+ }
+@@ -353,6 +384,10 @@
+     fn send_with_reply(&self, msg: Message, f: Self::F) -> Result<Token, ()>;
+     /// Cancels a pending reply.
+     fn cancel_reply(&self, id: Token) -> Option<Self::F>;
++    /// Optional owned retirement hook for method reply cancellation. The default
++    /// preserves existing custom implementations; SyncConnection supplies it.
++    #[doc(hidden)]
++    fn reply_canceller(&self, _: Token) -> Option<Box<dyn FnOnce() + Send>> { None }
+     /// Internal helper function that creates a callback.
+     fn make_f<G: FnOnce(Message, &Self) + Send + 'static>(g: G) -> Self::F where Self: Sized;
+     /// Set the internal timeout maker
+@@ -495,7 +530,15 @@
+     }
+ }
+ 
++struct ReplyGuard(Option<Box<dyn FnOnce() + Send>>);
++impl Drop for ReplyGuard {
++    fn drop(&mut self) {
++        if let Some(cancel) = self.0.take() { cancel(); }
++    }
++}
++
+ struct MRAwait {
++    reply_guard: ReplyGuard,
+     mrouter: MROuter,
+     token: Result<Token, ()>,
+     timeout: Instant,
+@@ -504,7 +547,7 @@
+ 
+ async fn method_call_await(mra: MRAwait) -> Result<Message, Error> {
+     use futures_util::future;
+-    let MRAwait { mrouter, token, timeout, timeoutfn } = mra;
++    let MRAwait { mrouter, token, timeout, timeoutfn, reply_guard: _reply_guard } = mra;
+     if token.is_err() { return Err(Error::new_failed("Failed to send message")) };
+     let timeout = if let Some(tfn) = timeoutfn { tfn(timeout) } else { Box::pin(future::pending()) };
+     match future::select(mrouter, timeout).await {
+@@ -531,7 +574,8 @@
+         let timeout = Instant::now() + self.timeout;
+         let token = self.connection.send_with_reply(msg, f);
+         let timeoutfn = self.connection.timeout_maker();
+-        MRAwait { mrouter, token, timeout, timeoutfn }
++        let cancel = token.as_ref().ok().and_then(|id| self.connection.reply_canceller(*id));
++        MRAwait { mrouter, token, timeout, timeoutfn, reply_guard: ReplyGuard(cancel) }
+     }
+ 
+     /// Make a method call using typed input argument, returns a future that resolves to the typed output arguments.
+@@ -603,3 +647,140 @@
+     is_sync::<SyncConnection>();
+     is_send::<MsgMatch>();
+ }
++
++#[cfg(all(test, unix))]
++mod openble_reply_ownership_tests {
++    use super::*;
++    use std::os::unix::net::UnixListener;
++
++    fn connection() -> (Arc<SyncConnection>, tempfile::TempDir, UnixListener, std::os::unix::net::UnixStream) {
++        let directory = tempfile::tempdir().unwrap();
++        let path = directory.path().join("bus");
++        let listener = UnixListener::bind(&path).unwrap();
++        let channel = Channel::open_private(&format!("unix:path={}", path.display())).unwrap();
++        let (peer, _) = listener.accept().unwrap();
++        (Arc::new(SyncConnection::from(channel)), directory, listener, peer)
++    }
++
++    #[test]
++    fn dropping_unpolled_method_reply_retires_native_registration() {
++        let (connection, _directory, _listener, _peer) = connection();
++        let proxy = Proxy::new("org.example.Test", "/test", Duration::from_secs(1), connection.clone());
++        let pending: MethodReply<()> = proxy.method_call("org.example.Test", "Ping", ());
++        assert_eq!(connection.replies_mut().len(), 1, "native registration was never established");
++        drop(pending);
++        assert_eq!(connection.replies_mut().len(), 0, "canceled native reply callback retained");
++    }
++
++    #[test]
++    fn dropping_polled_method_reply_retires_native_registration() {
++        let (connection, _directory, _listener, _peer) = connection();
++        let proxy = Proxy::new("org.example.Test", "/test", Duration::from_secs(1), connection.clone());
++        let mut pending: MethodReply<()> = proxy.method_call("org.example.Test", "Ping", ());
++        let mut context = task::Context::from_waker(task::Waker::noop());
++        assert!(pin::Pin::new(&mut pending).poll(&mut context).is_pending());
++        assert_eq!(connection.replies_mut().len(), 1);
++        drop(pending);
++        assert_eq!(connection.replies_mut().len(), 0, "canceled polled reply callback retained");
++    }
++    #[test]
++    fn method_reply_timeout_retires_registration_and_preserves_error() {
++        let (connection, _directory, _listener, _peer) = connection();
++        let mut connection = Arc::try_unwrap(connection).ok().unwrap();
++        connection.set_timeout_maker(Some(|_| Box::pin(std::future::ready(()))));
++        let connection = Arc::new(connection);
++        let proxy = Proxy::new("org.example.Test", "/test", Duration::from_secs(1), connection.clone());
++        let mut pending: MethodReply<()> = proxy.method_call("org.example.Test", "Ping", ());
++        let mut context = task::Context::from_waker(task::Waker::noop());
++        match pin::Pin::new(&mut pending).poll(&mut context) {
++            task::Poll::Ready(Err(error)) => assert_eq!(error.name(), Some("org.freedesktop.DBus.Error.Timeout")),
++            result => panic!("expected native timeout, got {:?}", result),
++        }
++        assert_eq!(connection.replies_mut().len(), 0);
++    }
++
++    #[test]
++    fn successful_reply_and_late_canceled_reply_leave_no_registration() {
++        let (connection, _directory, _listener, _peer) = connection();
++        let proxy = Proxy::new("org.example.Test", "/test", Duration::from_secs(1), connection.clone());
++        for canceled in [false, true] {
++            let mut pending: MethodReply<()> = proxy.method_call("org.example.Test", "Ping", ());
++            let id = *connection.replies_mut().keys().next().unwrap();
++            let mut call = Message::new_method_call("org.example.Test", "/test", "org.example.Test", "Ping").unwrap();
++            call.set_serial(id.0 as u32);
++            let reply = call.method_return();
++            if canceled { drop(pending); connection.process_one(reply); }
++            else {
++                connection.process_one(reply);
++                let mut context = task::Context::from_waker(task::Waker::noop());
++                assert!(matches!(pin::Pin::new(&mut pending).poll(&mut context), task::Poll::Ready(Ok(()))));
++            }
++            assert_eq!(connection.replies_mut().len(), 0);
++        }
++    }
++
++    #[test]
++    fn stale_reply_guard_preserves_a_reused_native_token() {
++        let (connection, _directory, _listener, _peer) = connection();
++        let proxy = Proxy::new("org.example.Test", "/test", Duration::from_secs(1), connection.clone());
++        let pending: MethodReply<()> = proxy.method_call("org.example.Test", "Ping", ());
++        let id = *connection.replies_mut().keys().next().unwrap();
++        drop(connection.cancel_reply(id));
++        connection.replies_mut().insert(id, (Arc::new(()), Box::new(|_, _| {})));
++        drop(pending);
++        assert_eq!(connection.replies_mut().len(), 1, "old guard removed a new callback");
++        drop(connection.cancel_reply(id));
++    }
++
++    #[test]
++    fn pending_reply_guard_does_not_retain_the_native_connection() {
++        let (connection, _directory, _listener, _peer) = connection();
++        let weak = Arc::downgrade(&connection);
++        let proxy = Proxy::new("org.example.Test", "/test", Duration::from_secs(1), connection.clone());
++        let pending: MethodReply<()> = proxy.method_call("org.example.Test", "Ping", ());
++        drop(proxy);
++        drop(connection);
++        assert!(weak.upgrade().is_none());
++        drop(pending);
++    }
++
++    #[test]
++    fn repeated_reply_cancellation_returns_registry_to_baseline() {
++        let (connection, _directory, _listener, _peer) = connection();
++        let proxy = Proxy::new("org.example.Test", "/test", Duration::from_secs(1), connection.clone());
++        for _ in 0..100 {
++            let mut pending: MethodReply<()> = proxy.method_call("org.example.Test", "Ping", ());
++            let mut context = task::Context::from_waker(task::Waker::noop());
++            assert!(pin::Pin::new(&mut pending).poll(&mut context).is_pending());
++            drop(pending);
++            assert_eq!(connection.replies_mut().len(), 0);
++        }
++    }
++
++    #[test]
++    fn send_wakeup_failure_retires_its_registration() {
++        let (connection, _directory, _listener, _peer) = connection();
++        let mut connection = Arc::try_unwrap(connection).ok().unwrap();
++        connection.set_waker(Some(Box::new(|| Err(()))));
++        let connection = Arc::new(connection);
++        let proxy = Proxy::new("org.example.Test", "/test", Duration::from_secs(1), connection.clone());
++        let mut pending: MethodReply<()> = proxy.method_call("org.example.Test", "Ping", ());
++        let mut context = task::Context::from_waker(task::Waker::noop());
++        assert!(matches!(pin::Pin::new(&mut pending).poll(&mut context), task::Poll::Ready(Err(_))));
++        assert_eq!(connection.replies_mut().len(), 0);
++    }
++
++    #[test]
++    fn native_reply_callback_runs_outside_the_registry_lock() {
++        let (connection, _directory, _listener, _peer) = connection();
++        let call = Message::new_method_call("org.example.Test", "/test", "org.example.Test", "Ping").unwrap();
++        let mut reply_call = call.duplicate().unwrap();
++        let token = connection.send_with_reply(call, Box::new(|_, connection| {
++            assert!(connection.replies.try_lock().is_ok(), "reply callback holds registry lock");
++        })).unwrap();
++        reply_call.set_serial(token.0 as u32);
++        connection.process_one(reply_call.method_return());
++        assert_eq!(connection.replies_mut().len(), 0);
++    }
++
++}

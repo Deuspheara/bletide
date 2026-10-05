@@ -1,0 +1,33 @@
+name: Bug report
+description: Report a reproducible Bletide failure
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Redact private device identifiers, payloads, credentials and local paths.
+        Report vulnerabilities using SECURITY.md instead of a public issue.
+  - type: input
+    id: version
+    attributes:
+      label: Bletide version or commit
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Platform and toolchain
+      description: OS, Flutter/Dart, Rust and relevant SDK versions.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Minimal code or steps, expected behavior and actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Redacted diagnostics
+      description: Include whether this occurred with a physical peripheral or a test backend.

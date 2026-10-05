@@ -1,0 +1,36 @@
+--- a/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
++++ b/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
+@@ -690,8 +690,14 @@
+                 // A remote loss with no command callback still owns a GATT object.
+                 // Close only this event's object, never a newly started generation.
+                 if (newState == BluetoothGatt.STATE_DISCONNECTED && Peripheral.this.gatt == gatt) {
+-                    gatt.close();
+-                    Peripheral.this.gatt = null;
++                    try {
++                        gatt.close();
++                        Peripheral.this.gatt = null;
++                    } catch (Throwable ex) {
++                        // Keep ownership for the worker's disconnect/recovery path.
++                        // A failed local close must not suppress the remote-loss event.
++                        Log.e(TAG, "Unable to close remotely disconnected GATT", ex);
++                    }
+                 }
+                 suppressDisconnectNotification = Peripheral.this.suppressDisconnectNotification;
+                 // A failed connect closes the gatt and clears `connected` even if the state was CONNECTED.
+@@ -700,12 +706,14 @@
+             switch (newState) {
+                 case BluetoothGatt.STATE_CONNECTED:
+                     if (nowConnected) {
+-                        Peripheral.this.adapter.onConnectionStateChanged(Peripheral.this.device.getAddress(), true);
++                        Peripheral.this.dispatchToCommandCallback("adapterConnected",
++                                () -> Peripheral.this.adapter.onConnectionStateChanged(Peripheral.this.device.getAddress(), true));
+                     }
+                     break;
+                 case BluetoothGatt.STATE_DISCONNECTED:
+                     if (!suppressDisconnectNotification) {
+-                        Peripheral.this.adapter.onConnectionStateChanged(Peripheral.this.device.getAddress(), false);
++                        Peripheral.this.dispatchToCommandCallback("adapterDisconnected",
++                                () -> Peripheral.this.adapter.onConnectionStateChanged(Peripheral.this.device.getAddress(), false));
+                     }
+                     break;
+             }

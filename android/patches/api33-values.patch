@@ -1,0 +1,103 @@
+--- a/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
++++ b/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
+@@ -303,6 +303,11 @@
+                     this.setCommandCallback(new CommandCallback(future) {
+                         @Override
+                         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
++                            onCharacteristicRead(gatt, characteristic, characteristic.getValue(), status);
++                        }
++
++                        @Override
++                        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
+                             Peripheral.this.asyncWithFuture(future, () -> {
+                                 if (status != BluetoothGatt.GATT_SUCCESS) {
+                                     throw new RuntimeException("Unable to read characteristic, status: " + status);
+@@ -312,7 +317,7 @@
+                                     throw new UnexpectedCharacteristicException();
+                                 }
+ 
+-                                Peripheral.this.wakeCommand(future, characteristic.getValue());
++                                Peripheral.this.wakeCommand(future, java.util.Arrays.copyOf(value, value.length));
+                             });
+                         }
+                     });
+@@ -477,6 +482,11 @@
+                     this.setCommandCallback(new CommandCallback(future) {
+                         @Override
+                         public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
++                            onDescriptorRead(gatt, descriptor, status, descriptor.getValue());
++                        }
++
++                        @Override
++                        public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status, byte[] value) {
+                             Peripheral.this.asyncWithFuture(future, () -> {
+                                 if (status != BluetoothGatt.GATT_SUCCESS) {
+                                     throw new RuntimeException("Unable to read descriptor, status: " + status);
+@@ -486,7 +496,7 @@
+                                     throw new UnexpectedCharacteristicException();
+                                 }
+ 
+-                                Peripheral.this.wakeCommand(future, descriptor.getValue());
++                                Peripheral.this.wakeCommand(future, java.util.Arrays.copyOf(value, value.length));
+                             });
+                         }
+                     });
+@@ -734,6 +744,19 @@
+         }
+ 
+         @Override
++        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
++            synchronized (Peripheral.this) {
++                if (gatt != Peripheral.this.gatt) {
++                    return;
++                }
++                if (Peripheral.this.commandCallback != null) {
++                    Peripheral.this.dispatchToCommandCallback("onCharacteristicRead",
++                            () -> Peripheral.this.commandCallback.onCharacteristicRead(gatt, characteristic, value, status));
++                }
++            }
++        }
++
++        @Override
+         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+             synchronized (Peripheral.this) {
+                 if (gatt != Peripheral.this.gatt) {
+@@ -765,8 +788,17 @@
+                 if (gatt != Peripheral.this.gatt) {
+                     return;
+                 }
++                onCharacteristicChanged(gatt, characteristic, characteristic.getValue());
++            }
++        }
++
++        @Override
++        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
++            synchronized (Peripheral.this) {
++                if (gatt != Peripheral.this.gatt) {
++                    return;
++                }
+                 BluetoothGattCharacteristic characteristic2 = new BluetoothGattCharacteristic(characteristic.getUuid(), characteristic.getProperties(), characteristic.getPermissions());
+-                byte[] value = characteristic.getValue();
+                 characteristic2.setValue(java.util.Arrays.copyOf(value, value.length));
+                 BluetoothGattService sourceService = characteristic.getService();
+                 BluetoothGattService serviceCopy = new BluetoothGattService(sourceService.getUuid(), sourceService.getType());
+@@ -794,6 +826,19 @@
+         }
+ 
+         @Override
++        public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status, byte[] value) {
++            synchronized (Peripheral.this) {
++                if (gatt != Peripheral.this.gatt) {
++                    return;
++                }
++                if (Peripheral.this.commandCallback != null) {
++                    Peripheral.this.dispatchToCommandCallback("onDescriptorRead",
++                            () -> Peripheral.this.commandCallback.onDescriptorRead(gatt, descriptor, status, value));
++                }
++            }
++        }
++
++        @Override
+         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+             synchronized (Peripheral.this) {
+                 if (gatt != Peripheral.this.gatt) {
