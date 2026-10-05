@@ -3,6 +3,7 @@
 from pathlib import Path
 import hashlib
 import json
+from patch_replay import round_trip
 
 ROOT = Path(__file__).resolve().parents[1]
 VENDOR = ROOT / 'rust/vendor'
@@ -34,8 +35,11 @@ def verify(crate, version, metadata_copies):
     for name, digest in expected.items():
         if hashlib.sha256((VENDOR / crate / name).read_bytes()).hexdigest() != digest:
             raise ValueError('Vendored source drift: ' + name)
+    restored = {name: digest for name, digest in original.items()
+                if name in actual}
+    round_trip(VENDOR / crate, VENDOR / f'{crate}.patch', restored)
     print(f'{crate} {version}: {len(original)} original files, '
-          f'{len(patched)} reviewed overrides/additions verified')
+          f'{len(patched)} reviewed overrides/additions and patch round trip verified')
 
 
 verify('btleplug', '0.13.3', {

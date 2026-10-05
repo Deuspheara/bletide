@@ -13,11 +13,12 @@ From the repository root:
 flutter pub get
 dart format --output=none --set-exit-if-changed lib hook test integration_test example/lib example/integration_test example/test_driver example/test
 dart analyze
+python3 tool/documentation_check.py
 flutter test
 cd example
 flutter pub get
 dart analyze
-flutter test test/testbench_test.dart
+flutter test test/testbench_test.dart test/recipes_test.dart
 ```
 
 Browser contracts require Chrome:
@@ -75,6 +76,7 @@ From the root:
 
 ```sh
 python3 tool/repository_check.py
+python3 tool/test_patch_replay.py
 python3 tool/upstream_sources.py
 python3 tool/android_sources.py
 python3 tool/event_layout.py
@@ -86,7 +88,12 @@ credential formats, private workstation paths, generated outputs and broken
 relative documentation links. It is a targeted check, not a guarantee that all
 sensitive data is detected. Inspect reports and commit metadata before publishing.
 
-The source verifiers compare complete inventories and patch hashes. The ABI
+The source verifiers compare complete inventories and patch hashes. Rust patches
+must reverse to the original inventory and reproduce the reviewed sources;
+Android's ordered patches must reproduce the bundled Java from pinned upstream.
+This is offline consistency evidence, not independent authentication of upstream.
+The negative controls reject mismatched origins even when source hashes agree.
+The ABI
 layout verifier compares native definitions with the installed Dart C header.
 The license verifier checks the locked dependency graph. Advisory checks need
 network access and the CI-pinned cargo-deny version:
@@ -147,10 +154,12 @@ without issuing platform calls. No physical suite has completed yet.
 | `test/capabilities_test.dart` | Capability gates, notification readiness and bounded buffering |
 | `test/web_chooser_test.dart`, `test/web_gatt_test.dart` | Controlled browser promises and late-result cleanup |
 | `example/test/testbench_test.dart` | Explorer controls and lifecycle ownership |
-| `rust/src/{engine,connection,scan}.rs` | Owned workers, cleanup barriers and panic containment |
+| `rust/src/{engine,connection,scan}/tests.rs` | Owned workers, cleanup barriers and panic containment through private child-module access |
 | Vendored backend and D-Bus suites | Platform reply/callback ownership and transport regressions |
 
 See [mandatory races](mandatory-races.md) for assertion names and
 [review checklist](requirements-audit.md) for unresolved native boundaries.
+The [organization guide](code-organization.md) explains production/test and
+native-driver boundaries; moving a suite must preserve assertions and fixture paths.
 The repeated panic-payload destructor test deliberately aborts its child process.
 Run negative controls only in isolated source copies with separate target folders.

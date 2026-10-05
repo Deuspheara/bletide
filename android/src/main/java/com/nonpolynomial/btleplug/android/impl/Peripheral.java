@@ -228,7 +228,7 @@ class Peripheral {
         return future;
     }
 
-    public boolean isConnected() {
+    public synchronized boolean isConnected() {
         return this.connected;
     }
 

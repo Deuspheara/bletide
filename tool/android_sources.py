@@ -2,6 +2,7 @@
 """Verify bundled upstream Java bytes and explicitly reviewed local patches."""
 from pathlib import Path
 import hashlib
+from patch_replay import sequence
 
 root = Path(__file__).resolve().parents[1] / 'android'
 
@@ -26,5 +27,17 @@ for path in patches:
 for path, digest in (base | patches).items():
     if hashlib.sha256((root / path).read_bytes()).hexdigest() != digest:
         raise ValueError(f'Bundled Android source drift: {path}')
+order = ['stale-gatt', 'notification-lifetime', 'cancellation-lifetime',
+         'attribute-identity', 'service-identity', 'callback-failure',
+         'api33-values', 'notification-overflow-cause',
+         'notification-compatibility', 'scan-failure', 'connection-visibility']
+if {f'patches/{name}.patch' for name in order} != {
+        name for name in patches if name.startswith('patches/')}:
+    raise ValueError('Android patch sequence differs from its reviewed inventory')
+sequence(root.parent / 'rust/vendor/btleplug/src/droidplug/java',
+         [root / f'patches/{name}.patch' for name in order],
+         root / 'src/main/java',
+         # Restrict to Java: upstream also includes Gradle and wrapper files.
+         {name: digest for name, digest in base.items()})
 print(f'Android source hashes verified: {len(base)} upstream files, '
       f'{len(patches)} patch entries')

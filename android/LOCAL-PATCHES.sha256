@@ -1,4 +1,4 @@
-e2041df3d66fcfa75a451774687c8379613d63790f4a56f2d650da63f0fa7a1c  src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
+a766e625ddb9a08cd430eb9d9d7fff8931f7b925c9960d58123e05fa5fbae2ed  src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
 c400a9e13dc73ddd6c2240e64fa05dd3195876eded3271b25401c97c767fb80c  src/main/java/io/github/gedgygedgy/rust/stream/QueueStream.java
 df323218a52aecacccf360585f5083654458f12c61354fee5c9b2b972917148c  src/main/java/io/github/gedgygedgy/rust/future/SimpleFuture.java
 3345f3ee1e477e95abc5610f16c762323b8870e6a499f86be7f1c6b5b76d24b8  patches/stale-gatt.patch
@@ -12,3 +12,4 @@ bfa1d9aceb48f30e0aac68e580d5cadac9f361ed67b941d42e8a8b7175f2d04e  patches/notifi
 1fe4d83d3a2ec7218d2f3f051c40d041e6019ef5ed5343014b5c1b0be6fcc82e  patches/notification-compatibility.patch
 895024ecd45db53f5c79a0ead2efac28065e9c30c076d969ec0976eed777a710  src/main/java/com/nonpolynomial/btleplug/android/impl/Adapter.java
 abb471e4339382945b26f80fcc2608f7188c94e73d6c69258d2aa65624f14d1b  patches/scan-failure.patch
+1936ddb3d1679acc3e0a36626ff026a046988454415d68c3abf0e5af400ae656  patches/connection-visibility.patch

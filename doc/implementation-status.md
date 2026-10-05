@@ -19,13 +19,13 @@ See [architecture](architecture.md), [lifecycle](lifecycle.md),
 
 ## Verification snapshot
 
-Local checks on macOS, 2026-10-05, after the Bletide rename and publication cleanup:
+Local checks on macOS, 2026-10-05, after the audit continuation and source reorganization:
 
 | Check | Result |
 |---|---|
-| Package tests | 200 passed, including compiled native ABI/VM-port contracts |
-| Example widget tests | 13 passed |
-| Root Rust tests | 98 passed |
+| Package tests | 202 passed, including compiled native ABI/VM-port contracts |
+| Example widget tests | 16 passed (explorer and executable recipes) |
+| Root Rust tests | 99 passed |
 | Browser JavaScript contracts | 38 passed |
 | README examples | Type-checked |
 | Browser example build | Passed |
@@ -38,13 +38,17 @@ Local checks on macOS, 2026-10-05, after the Bletide rename and publication clea
 | Rust formatting and strict Clippy | Passed with all targets/features on the host |
 | Upstream Rust/Android source inventories | Passed |
 | Native redistribution license inventory | Passed |
+| Fresh locked dependency advisories/licenses/sources | Passed with CI-pinned cargo-deny 0.20.2 |
 | Native event/header layout | Passed for the host |
+| Isolated checkout with public uncommitted overlay | Formatting, analysis, root/example tests and provenance checks passed; no local config/build outputs copied |
+| pub.dev archive dry-run | Completed with one expected uncommitted-files warning; nothing published |
 
 The current Bletide checks above refresh macOS and Android packaging. Historical
 checks also cover unsigned iOS device/simulator builds.
-GitHub Actions has also built the current Windows and Linux release consumers
+Before this uncommitted continuation, GitHub Actions also built Windows and Linux release consumers
 and passed their bundle verifiers. Windows x64/ARM64 target checks passed.
-These are build/artifact results, not hardware validation.
+The revised uncommitted tree has not run the GitHub Actions matrix. These are
+build/artifact results, not hardware validation.
 Browser contract tests use controlled JavaScript; browser compilation does not
 prove physical Bluetooth behavior.
 

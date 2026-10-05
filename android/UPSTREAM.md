@@ -2,7 +2,7 @@ Java sources under com/nonpolynomial and io/github/gedgygedgy originate from
 btleplug 0.13.3, src/droidplug/java/src/main/java. Cargo.lock pins the matching
 Rust code. UPSTREAM-SOURCES.sha256 records the original published source bytes.
 
-Bundled sources have ten reviewed local compatibility patches:
+Bundled sources have eleven reviewed local compatibility patches:
 patches/stale-gatt.patch rejects stale BluetoothGatt identities in all GATT
 callbacks, extending upstream's existing connection-state identity check.
 Notification payloads are copied only after checking the active GATT identity.
@@ -74,3 +74,8 @@ for startup observers and rejects advertisements/failures from retired attempts.
 Stop retires the callback only after successful OS cleanup. Rust consumes these
 errors without poisoning the process-wide adapter; duplicate engine observers do
 not invalidate a new physical attempt.
+
+patches/connection-visibility.patch makes isConnected acquire the same peripheral
+monitor used by connect/disconnect and Binder callbacks. JNI callers cannot read
+the connected flag during an in-flight state transition or without a Java
+happens-before edge. This does not add a physical radio-state guarantee.

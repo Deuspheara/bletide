@@ -29,6 +29,16 @@ The package bundles pinned upstream Java classes and consumer R8 keep rules.
 Applications must declare/request permissions before scanning or connecting.
 The example's manifest and activity show the required version-dependent setup.
 
+The library manifest merges legacy Bluetooth and location declarations (through
+API30), plus `BLUETOOTH_SCAN` with `neverForLocation` and `BLUETOOTH_CONNECT`.
+Request SCAN/CONNECT at runtime on API31+; request fine location on API24–30 and
+check system location settings if discovery is empty. The package does not
+display runtime permission prompts. Apps that derive location must review the
+merged manifest and the `neverForLocation` policy; it may filter some beacons.
+See [Android's permission guide](https://developer.android.com/develop/connectivity/bluetooth/bt-permissions)
+and the [example activity](../example/android/app/src/main/kotlin/com/example/bletide/MainActivity.kt).
+Use compileSdk 36 and NDK 28.2.13676358 for the tested example; minSdk is 24.
+
 Android 14+ can return the existing MTU negotiation. Priority requests are hints:
 an acknowledgment does not prove a peer-negotiated interval. Compat notification
 setup enables local routing while skipping the CCCD write.
@@ -38,6 +48,11 @@ setup enables local routing while skipping the CCCD write.
 Build with Xcode. Consuming apps need Bluetooth usage descriptions; sandboxed
 macOS apps also need Bluetooth entitlements. See the example's `Info.plist` and
 entitlement files. Unsigned device packaging does not prove signed iOS execution.
+Add `NSBluetoothAlwaysUsageDescription` with an app-specific explanation to
+`Info.plist`; the example also includes `NSBluetoothPeripheralUsageDescription`.
+For sandboxed macOS enable `com.apple.security.device.bluetooth` in both debug
+and release entitlements. The example targets iOS15+ and macOS12+; review
+consuming-app deployment targets separately.
 CoreBluetooth identities are opaque UUIDs, not interchangeable with MAC addresses.
 
 Compat notifications still call `setNotifyValue` and await the native callback.

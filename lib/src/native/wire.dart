@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import '../models.dart';
 import '../errors.dart';
+import '../models.dart';
 
 /// Bounds-checked decoding of the native binary format. No native pointers.
 final class NativeReader {

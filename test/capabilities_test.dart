@@ -52,6 +52,96 @@ Future<BleConnection> connected(Ble ble, FakeBleBackend backend) async {
 
 void main() {
   test(
+    'GATT capability rejects all attribute work before backend dispatch',
+    () async {
+      // Even an inconsistent backend advertising descriptors must respect gatt.
+      final backend = FakeBleBackend(
+        capabilities: const BleCapabilities(
+          connect: true,
+          descriptorAccess: true,
+        ),
+      );
+      final ble = Ble(backend: backend);
+      addTearDown(ble.close);
+      final connection = await connected(ble, backend);
+      final descriptor = BleDescriptor(
+        serviceUuid: characteristic.serviceUuid,
+        characteristicUuid: characteristic.uuid,
+        uuid: BleUuid('2901'),
+      );
+      final expected = throwsA(
+        isA<BleException>()
+            .having((e) => e.code, 'code', BleErrorCode.notSupported)
+            .having((e) => e.context.deviceId, 'device', device)
+            .having(
+              (e) => e.context.connectionGeneration,
+              'generation',
+              connection.generation,
+            ),
+      );
+      await expectLater(connection.discoverServices(), expected);
+      await expectLater(connection.read(characteristic), expected);
+      for (final response in [true, false]) {
+        await expectLater(
+          connection.write(
+            characteristic,
+            Uint8List(1),
+            withResponse: response,
+          ),
+          expected,
+        );
+      }
+      await expectLater(connection.readDescriptor(descriptor), expected);
+      await expectLater(
+        connection.writeDescriptor(descriptor, Uint8List(1)),
+        expected,
+      );
+      await expectLater(
+        connection.enableNotifications(characteristic),
+        expected,
+      );
+      await expectLater(connection.subscribe(characteristic).first, expected);
+      expect(backend.history, ['connect']);
+      expect(backend.pending, isEmpty);
+      expect(backend.subscriptions, 0);
+    },
+  );
+
+  test(
+    'rediscovery preserves notification ownership until teardown completes',
+    () async {
+      final backend = FakeBleBackend();
+      final ble = Ble(backend: backend);
+      addTearDown(ble.close);
+      final connection = await connected(ble, backend);
+      final setup = connection.enableNotifications(characteristic);
+      (await backend.waitFor<void>('subscribe')).complete(null);
+      final owner = await setup;
+      await expectLater(
+        connection.discoverServices(),
+        throwsA(failure(BleErrorCode.invalidState)),
+      );
+      expect(backend.history, isNot(contains('discover')));
+      final received = Completer<Uint8List>();
+      final listener = owner.values.listen(received.complete);
+      physical[connection]!.emitNotification(
+        characteristic,
+        Uint8List.fromList([7]),
+      );
+      expect(await received.future, [7]);
+      final stopping = listener.cancel();
+      final teardown = await backend.waitFor<void>('unsubscribe');
+      teardown.complete(null);
+      await stopping;
+      await owner.cancel();
+      final discovering = connection.discoverServices();
+      (await backend.waitFor<List<BleService>>('discover')).complete([]);
+      expect(await discovering, isEmpty);
+      expect(connection.state, BleConnectionState.connected);
+    },
+  );
+
+  test(
     'scan initialization failure reaches current and later listeners',
     () async {
       final ready = Completer<void>();

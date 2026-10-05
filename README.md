@@ -1,6 +1,6 @@
 # Bletide
 
-Cross-platform Bluetooth Low Energy for Dart and Flutter. Bletide uses direct FFI
+Experimental BLE **central/client** transport for Dart and Flutter. Bletide uses direct FFI
 into Rust, btleplug and Tokio on native platforms, and Web Bluetooth in browsers.
 
 **Experimental, unreleased.** Deterministic API/lifecycle tests pass and native
@@ -18,6 +18,16 @@ validation remain incomplete. See the [verification status](doc/implementation-s
 Bletide is a transport library. Applications own runtime permissions and their
 peripheral protocols.
 
+Choose Bletide for experiments where you want to inspect a Rust-backed transport,
+control connection/subscription ownership, or test application logic with injected
+backends. Expect to validate your own platform and peripheral. For production
+adoption, compare established libraries and their current licenses first; see
+[API/documentation comparison](doc/library-comparison.md).
+
+Bluetooth Classic, peripheral/server mode, automatic reconnect, bonding control
+and background restoration are outside the current API. Applications handle
+reconnect policy and rediscover attributes for each new connection generation.
+
 ## Get started
 
 Clone [the repository](https://github.com/Deuspheara/bletide):
@@ -34,6 +44,19 @@ dependencies:
   bletide:
     path: ../bletide
 ```
+
+Or use a Git dependency pinned to a reviewed commit (this is the audit baseline):
+
+```yaml
+dependencies:
+  bletide:
+    git:
+      url: https://github.com/Deuspheara/bletide.git
+      ref: 6f8e080aca327be2f60540dbc37bd9a6038284a1
+```
+
+Run `flutter pub get` in the consuming app. Upgrade the pinned revision deliberately;
+the unreleased API can change. Keep the application's lockfile under version control.
 
 Use Flutter >=3.47.2 / Dart >=3.13.2, Rustup and the compiler pinned in
 `rust/rust-toolchain.toml`. Native builds require the host platform's development
@@ -88,9 +111,10 @@ Future<void> observeForFiveSeconds(
   BleConnection connection,
   BleCharacteristic characteristic,
   void Function(Uint8List) onValue,
+  void Function(Object) onError,
 ) async {
   final owner = await connection.enableNotifications(characteristic);
-  final listener = owner.values.listen(onValue);
+  final listener = owner.values.listen(onValue, onError: onError);
   try {
     await Future<void>.delayed(const Duration(seconds: 5));
   } finally {
@@ -104,6 +128,36 @@ Standard CCCD behavior is the default. A known nonstandard peripheral can opt in
 per characteristic with `setupMode: BleNotificationSetupMode.compat` on Android
 or Apple platforms. Other backends return `notSupported`. See
 [notification compatibility](doc/limitations.md#notification-compatibility).
+
+## Writes and a complete session
+
+Use a discovered characteristic with the matching write property. Send only
+payloads defined by your peripheral's protocol; Bletide does not split writes.
+With-response completion confirms ATT acceptance, not a protocol-level reply.
+
+```dart
+import 'dart:typed_data';
+import 'package:bletide/bletide.dart';
+
+Future<void> sendCommand(
+  BleConnection connection,
+  BleCharacteristic command,
+  Uint8List protocolPayload,
+) async {
+  if (!command.properties.write) throw StateError('Write with response required');
+  final budget = await connection.getWritePayloadLimit(); // native platforms
+  if (protocolPayload.length > budget) throw StateError('Exceeds single-write budget');
+  await connection.write(command, protocolPayload);
+}
+```
+
+[Runnable recipes](example/lib/recipes.dart) combine scan/chooser selection,
+connect, discovery, read, notification setup, write and cleanup. Import them into
+the example app or adapt them to your app's protocol; all UUIDs and write bytes
+are caller-supplied. Run their deterministic example with
+`cd example && flutter test test/recipes_test.dart`. For interactive hardware
+use, run `flutter run -d macos` from `example`, or select your configured device.
+The explorer requests no protocol-specific write automatically.
 
 ## Browser discovery
 
@@ -135,7 +189,8 @@ target. Inject `FakeBleBackend` from `package:bletide/testing.dart` in determini
 application tests. Fake operations complete when the test resolves their ACKs.
 
 - [Contributing](CONTRIBUTING.md) and [testing](doc/testing.md)
-- [Architecture](doc/architecture.md) and [lifecycle](doc/lifecycle.md)
+- [Architecture](doc/architecture.md), [source organization](doc/code-organization.md) and [lifecycle](doc/lifecycle.md)
+- [API contracts and troubleshooting](doc/api-guide.md)
 - [Release checklist](doc/releasing.md) and [security reporting](SECURITY.md)
 
 Library diagnostics omit BLE payload fields. Device IDs and native error messages

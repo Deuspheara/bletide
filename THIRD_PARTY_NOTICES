@@ -42,7 +42,8 @@ handle across cancelled shutdown. Adapters and peripherals share that owner. Ori
 Bundled Android Java changes are recorded in android/patches and
 android/LOCAL-PATCHES.sha256, including lifecycle, service identity, API 33
 event-value copying and queue overflow cause fixes. The Rust JNI stream preserves
-Java exception text. android/UPSTREAM-SOURCES.sha256 records original bytes.
+Java exception text. Connection-state queries acquire the same monitor as Binder
+callbacks to preserve state visibility. android/UPSTREAM-SOURCES.sha256 records original bytes.
 
 License: BSD-3-Clause; inherited Rumble MIT/Apache-2.0
 

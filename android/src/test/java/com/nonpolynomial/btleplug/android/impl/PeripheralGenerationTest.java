@@ -6,12 +6,42 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.function.Consumer;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 /** Exercises the actual bundled callback dispatcher without a BLE radio. */
 public class PeripheralGenerationTest {
+    @Test public void connectionQueryWaitsForInFlightStateTransition() throws Exception {
+        Peripheral owner = mock(Peripheral.class);
+        doCallRealMethod().when(owner).isConnected();
+        AtomicReference<Boolean> observed = new AtomicReference<>();
+        CountDownLatch entering = new CountDownLatch(1);
+        Thread reader = new Thread(() -> {
+            entering.countDown();
+            observed.set(owner.isConnected());
+        });
+        Thread.State duringTransition;
+        synchronized (owner) {
+            // Binder callbacks update connected under this monitor. Model a
+            // transition that has entered the callback but not published yet.
+            set(owner, "connected", false);
+            reader.start();
+            org.junit.Assert.assertTrue(entering.await(5, TimeUnit.SECONDS));
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            while (reader.getState() != Thread.State.BLOCKED && reader.isAlive()
+                    && System.nanoTime() < deadline) Thread.yield();
+            duringTransition = reader.getState();
+            set(owner, "connected", true);
+        }
+        reader.join(5000);
+        org.junit.Assert.assertFalse(reader.isAlive());
+        assertEquals(Thread.State.BLOCKED, duringTransition);
+        assertEquals(Boolean.TRUE, observed.get());
+    }
     private static void set(Peripheral owner, String name, Object value) throws Exception {
         Field field = Peripheral.class.getDeclaredField(name);
         field.setAccessible(true);

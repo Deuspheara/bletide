@@ -17,8 +17,22 @@ jobs:
         os: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
+    defaults:
+      run:
+        # Explicit Bash enables -e -o pipefail on every runner, including Windows.
+        # PowerShell can mask an earlier external-command failure in a run block.
+        shell: bash
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Verify run blocks stop on native command failure
+        run: |
+          probe_dir=$(mktemp -d)
+          trap 'rm -rf "$probe_dir"' EXIT
+          if bash --noprofile --norc -eo pipefail -c 'python -c "import sys; sys.exit(23)"; touch "$1"' _ "$probe_dir/masked"; then
+            echo "Failure was masked"
+            exit 1
+          fi
+          test ! -e "$probe_dir/masked"
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: '3.47.2'
@@ -39,7 +53,9 @@ jobs:
       - name: Repository hygiene
         run: python tool/repository_check.py
       - name: Pinned upstream source verification
-        run: python tool/upstream_sources.py
+        run: |
+          python tool/test_patch_replay.py
+          python tool/upstream_sources.py
       - name: Dart event C ABI layout
         run: python tool/event_layout.py
       - name: Pinned backend lifecycle regressions
@@ -94,6 +110,7 @@ jobs:
         run: |
           dart format --output=none --set-exit-if-changed lib hook test integration_test example/lib example/integration_test example/test_driver example/test
           dart analyze
+          python tool/documentation_check.py
       - name: Hardware harness dependency resolution and analysis
         working-directory: example
         run: |
@@ -103,7 +120,7 @@ jobs:
         run: flutter test
       - name: Example connection and notification lifecycle
         working-directory: example
-        run: flutter test test/testbench_test.dart
+        run: flutter test test/testbench_test.dart test/recipes_test.dart
       - name: Web Bluetooth JS interop contracts
         if: runner.os == 'Linux'
         run: dart test --platform chrome test/web_chooser_test.dart test/web_gatt_test.dart

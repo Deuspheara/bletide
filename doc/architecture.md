@@ -3,6 +3,8 @@
 One Dart package and one Rust crate. The public façade manages logical stream
 ownership, immutable models, typed errors, cancellation, and one FIFO GATT queue
 per connection. Backends implement platform calls, not business protocols.
+The [organization guide](code-organization.md) maps source locations, mutable
+state and the reasons for retaining or separating each substantial file.
 
 Native calls follow `Ble → NativeBleBackend → NativeEventBridge → dart:ffi →
 Rust engine → btleplug`. The small audited ABI is in `src/bletide.h`; matching Dart
@@ -46,7 +48,7 @@ pending.
 
 ## Following a write
 
-1. [`BleConnection.write`](../lib/src/ble.dart) copies the caller's bytes and
+1. [`BleConnection.write`](../lib/src/ble/connection.dart) copies the caller's bytes and
    enqueues cancellable work in that generation's FIFO queue.
 2. [`NativeBleConnection.write`](../lib/src/native/native_connection.dart) selects
    operation 42 (with response) or 43 (without response). Its request encoder
@@ -59,7 +61,7 @@ pending.
    routes work through the [adapter worker](../rust/src/scan.rs) to the matching
    connection generation.
 5. The [connection worker](../rust/src/connection.rs) serializes the operation;
-   its native driver resolves the cached characteristic, validates the write
+   its [native driver](../rust/src/connection/native.rs) resolves the cached characteristic, validates the write
    property and awaits `btleplug::Peripheral::write` with the selected write type.
 6. The terminal result travels through the [copied port event](../rust/src/event.rs)
    to the bridge's pending request, then through backend generation validation

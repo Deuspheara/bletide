@@ -30,6 +30,9 @@ Characteristic identity includes its service UUID; descriptor identity includes
 its service and characteristic UUID. Observable duplicates within a scope fail
 as ambiguous. Upstream set-based models can collapse identical physical instances
 before Bletide sees them; the API cannot address every duplicate instance.
+Release all notification owners before calling `discoverServices` again. The
+façade and native worker reject rediscovery while subscriptions are owned, so
+attribute replacement cannot silently strand callbacks on older OS objects.
 
 ## Link information
 

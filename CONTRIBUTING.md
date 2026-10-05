@@ -3,6 +3,9 @@
 Bletide is experimental. Bug reports, focused fixes, documentation improvements
 and platform validation are welcome. Read the [architecture](doc/architecture.md)
 and [lifecycle](doc/lifecycle.md) before changing cancellation or resource ownership.
+Use the [organization guide](doc/code-organization.md) to locate owners and native
+drivers. State a concrete maintenance problem before splitting a file; preserve
+test access, guarded disposal and joined cleanup rather than applying line limits.
 
 ## Development setup
 
