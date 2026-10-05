@@ -1,0 +1,99 @@
+--- a/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
++++ b/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
+@@ -669,6 +669,11 @@
+         @Override
+         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+             synchronized (Peripheral.this) {
++                // A closed GATT may still deliver Binder callbacks after reconnect.
++                // Never route those callbacks into the current generation.
++                if (gatt != Peripheral.this.gatt) {
++                    return;
++                }
+                 if (Peripheral.this.commandCallback != null) {
+                     Peripheral.this.dispatchToCommandCallback("onCharacteristicRead",
+                             () -> Peripheral.this.commandCallback.onCharacteristicRead(gatt, characteristic, status));
+@@ -679,6 +684,9 @@
+         @Override
+         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+             synchronized (Peripheral.this) {
++                if (gatt != Peripheral.this.gatt) {
++                    return;
++                }
+                 if (Peripheral.this.commandCallback != null) {
+                     Peripheral.this.dispatchToCommandCallback("onCharacteristicWrite",
+                             () -> Peripheral.this.commandCallback.onCharacteristicWrite(gatt, characteristic, status));
+@@ -689,6 +697,9 @@
+         @Override
+         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+             synchronized (Peripheral.this) {
++                if (gatt != Peripheral.this.gatt) {
++                    return;
++                }
+                 if (Peripheral.this.commandCallback != null) {
+                     Peripheral.this.dispatchToCommandCallback("onServicesDiscovered",
+                             () -> Peripheral.this.commandCallback.onServicesDiscovered(gatt, status));
+@@ -698,9 +709,12 @@
+ 
+         @Override
+         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+-            BluetoothGattCharacteristic characteristic2 = new BluetoothGattCharacteristic(characteristic.getUuid(), characteristic.getProperties(), characteristic.getPermissions());
+-            characteristic2.setValue(characteristic.getValue());
+             synchronized (Peripheral.this) {
++                if (gatt != Peripheral.this.gatt) {
++                    return;
++                }
++                BluetoothGattCharacteristic characteristic2 = new BluetoothGattCharacteristic(characteristic.getUuid(), characteristic.getProperties(), characteristic.getPermissions());
++                characteristic2.setValue(characteristic.getValue());
+                 for (WeakReference<QueueStream<BluetoothGattCharacteristic>> ref : Peripheral.this.notificationStreams) {
+                     QueueStream<BluetoothGattCharacteristic> stream = ref.get();
+                     if (stream != null) {
+@@ -713,6 +727,9 @@
+         @Override
+         public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+             synchronized (Peripheral.this) {
++                if (gatt != Peripheral.this.gatt) {
++                    return;
++                }
+                 if (Peripheral.this.commandCallback != null) {
+                     Peripheral.this.dispatchToCommandCallback("onDescriptorRead",
+                             () -> Peripheral.this.commandCallback.onDescriptorRead(gatt, descriptor, status));
+@@ -723,6 +740,9 @@
+         @Override
+         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+             synchronized (Peripheral.this) {
++                if (gatt != Peripheral.this.gatt) {
++                    return;
++                }
+                 if (Peripheral.this.commandCallback != null) {
+                     Peripheral.this.dispatchToCommandCallback("onDescriptorWrite",
+                             () -> Peripheral.this.commandCallback.onDescriptorWrite(gatt, descriptor, status));
+@@ -733,6 +753,9 @@
+         @Override
+         public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
+             synchronized (Peripheral.this) {
++                if (gatt != Peripheral.this.gatt) {
++                    return;
++                }
+                 if (Peripheral.this.commandCallback != null) {
+                     Peripheral.this.dispatchToCommandCallback("onMtuChanged",
+                             () -> Peripheral.this.commandCallback.onMtuChanged(gatt, mtu, status));
+@@ -743,6 +766,9 @@
+         @Override
+         public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
+             synchronized (Peripheral.this) {
++                if (gatt != Peripheral.this.gatt) {
++                    return;
++                }
+                 if (Peripheral.this.commandCallback != null) {
+                     Peripheral.this.dispatchToCommandCallback("onReadRemoteRssi",
+                             () -> Peripheral.this.commandCallback.onReadRemoteRssi(gatt, rssi, status));
+@@ -754,6 +780,9 @@
+         public void onConnectionUpdated(BluetoothGatt gatt, int interval, int latency, int timeout, int status) {
+             if (status == BluetoothGatt.GATT_SUCCESS) {
+                 synchronized (Peripheral.this) {
++                    if (gatt != Peripheral.this.gatt) {
++                        return;
++                    }
+                     Peripheral.this.connectionInterval = interval;
+                     Peripheral.this.connectionLatency = latency;
+                     Peripheral.this.supervisionTimeout = timeout;

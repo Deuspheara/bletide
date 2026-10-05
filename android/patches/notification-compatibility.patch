@@ -1,0 +1,33 @@
+--- a/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
++++ b/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
+@@ -401,6 +401,10 @@
+ 
+     @SuppressLint("MissingPermission")
+     public Future<Void> setCharacteristicNotification(UUID serviceUuid, UUID uuid, boolean enable) {
++        return setCharacteristicNotification(serviceUuid, uuid, enable, false);
++    }
++
++    public Future<Void> setCharacteristicNotification(UUID serviceUuid, UUID uuid, boolean enable, boolean nonstandardCccd) {
+         SimpleFuture<Void> future = new SimpleFuture<>();
+         synchronized (this) {
+             this.queueCommand(future, () -> {
+@@ -410,9 +414,18 @@
+                     }
+ 
+                     BluetoothGattCharacteristic characteristic = this.getCharacteristicByUuid(serviceUuid, uuid);
+-                    BluetoothGattDescriptor descriptor = this.getDescriptorByUuid(serviceUuid, uuid, CLIENT_CHARACTERISTIC_CONFIGURATION_DESCRIPTOR);
++                    // The caller explicitly selects local routing without a CCCD write.
++                    if (nonstandardCccd && (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_NOTIFY) == 0) {
++                        throw new IllegalArgumentException("Nonstandard CCCD policy requires a notify characteristic");
++                    }
++                    BluetoothGattDescriptor descriptor = nonstandardCccd ? null : this.getDescriptorByUuid(serviceUuid, uuid, CLIENT_CHARACTERISTIC_CONFIGURATION_DESCRIPTOR);
+                     if (!this.gatt.setCharacteristicNotification(characteristic, enable)) {
+                         throw new RuntimeException("Unable to set characteristic notification");
++                    }
++
++                    if (nonstandardCccd) {
++                        this.wakeCommand(future, null);
++                        return;
+                     }
+ 
+                     byte[] cccdValue;

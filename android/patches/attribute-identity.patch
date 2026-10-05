@@ -1,0 +1,42 @@
+--- a/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
++++ b/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
+@@ -578,25 +578,29 @@
+ 
+     @SuppressLint("MissingPermission")
+     private BluetoothGattCharacteristic getCharacteristicByUuid(UUID uuid) {
++        BluetoothGattCharacteristic match = null;
+         for (BluetoothGattCharacteristic characteristic : this.getCharacteristics()) {
+             if (characteristic.getUuid().equals(uuid)) {
+-                return characteristic;
+-            }
+-        }
+-
+-        throw new NoSuchCharacteristicException();
++                if (match != null) throw new UnexpectedCharacteristicException();
++                match = characteristic;
++            }
++        }
++        if (match == null) throw new NoSuchCharacteristicException();
++        return match;
+     }
+ 
+     @SuppressLint("MissingPermission")
+     private BluetoothGattDescriptor getDescriptorByUuid(UUID characteristicUuid, UUID uuid) {
+         BluetoothGattCharacteristic characteristic = getCharacteristicByUuid(characteristicUuid);
++        BluetoothGattDescriptor match = null;
+         for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
+             if (descriptor.getUuid().equals(uuid)) {
+-                return descriptor;
+-            }
+-        }
+-
+-        throw new NoSuchCharacteristicException();
++                if (match != null) throw new UnexpectedCharacteristicException();
++                match = descriptor;
++            }
++        }
++        if (match == null) throw new NoSuchCharacteristicException();
++        return match;
+     }
+ 
+     private void queueCommand(SimpleFuture<?> future, Runnable callback) {

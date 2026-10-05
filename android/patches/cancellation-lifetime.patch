@@ -1,0 +1,275 @@
+--- a/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
++++ b/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
+@@ -17,8 +17,9 @@
+ import java.util.List;
+ import java.util.Queue;
+ import java.util.UUID;
+-import java.util.concurrent.Executors;
++import java.util.concurrent.ScheduledThreadPoolExecutor;
+ import java.util.concurrent.ScheduledExecutorService;
++import java.util.concurrent.ScheduledFuture;
+ import java.util.concurrent.TimeUnit;
+ 
+ import io.github.gedgygedgy.rust.future.Future;
+@@ -47,12 +48,16 @@
+     // Library-owned scheduler for connect retries: deliberately not tied to any app's main
+     // looper, since an app that blocks its main thread while awaiting connect() would otherwise
+     // deadlock waiting for its own looper to run the retry.
+-    private static final ScheduledExecutorService RETRY_EXECUTOR =
+-            Executors.newSingleThreadScheduledExecutor(r -> {
+-                Thread t = new Thread(r, "btleplug-connect-retry");
+-                t.setDaemon(true);
+-                return t;
+-            });
++    private static final ScheduledExecutorService RETRY_EXECUTOR = retryExecutor();
++    private static ScheduledExecutorService retryExecutor() {
++        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, r -> {
++            Thread t = new Thread(r, "btleplug-connect-retry");
++            t.setDaemon(true);
++            return t;
++        });
++        executor.setRemoveOnCancelPolicy(true);
++        return executor;
++    }
+ 
+     private final BluetoothDevice device;
+     private final Adapter adapter;
+@@ -69,7 +74,17 @@
+     private int connectionLatency = -1;
+     private int supervisionTimeout = -1;  // in 10ms units
+ 
+-    private final Queue<Runnable> commandQueue = new LinkedList<>();
++    private static final class QueuedCommand {
++        final SimpleFuture<?> future;
++        final Runnable callback;
++        QueuedCommand(SimpleFuture<?> future, Runnable callback) {
++            this.future = future;
++            this.callback = callback;
++        }
++    }
++    private final Queue<QueuedCommand> commandQueue = new LinkedList<>();
++    private SimpleFuture<?> activeFuture;
++    private ScheduledFuture<?> pendingRetry;
+     private final LinkedList<WeakReference<QueueStream<BluetoothGattCharacteristic>>> notificationStreams = new LinkedList<>();
+     private boolean executingCommand = false;
+     private CommandCallback commandCallback;
+@@ -88,7 +103,7 @@
+     public Future<Void> connect() {
+         SimpleFuture<Void> future = new SimpleFuture<>();
+         synchronized (this) {
+-            this.queueCommand(() -> this.attemptConnect(future, 0));
++            this.queueCommand(future, () -> this.attemptConnect(future, 0));
+         }
+         return future;
+     }
+@@ -128,12 +143,11 @@
+                                 }
+                                 Peripheral.this.commandCallback = null;
+                                 Peripheral.this.suppressDisconnectNotification = true;
+-                                // Not kept: nothing here needs to cancel a pending retry, and a
+-                                // pending retry already holds a reference to this Peripheral via
+-                                // the closure, keeping it alive until it runs.
+-                                RETRY_EXECUTOR.schedule(() -> {
++                                Peripheral.this.pendingRetry = RETRY_EXECUTOR.schedule(() -> {
+                                     Peripheral.this.dispatchToCommandCallback("connectRetry", () -> {
+                                         synchronized (Peripheral.this) {
++                                            if (Peripheral.this.activeFuture != future) return;
++                                            Peripheral.this.pendingRetry = null;
+                                             Peripheral.this.attemptConnect(future, attempt + 1);
+                                         }
+                                     });
+@@ -181,36 +195,35 @@
+     public Future<Void> disconnect() {
+         SimpleFuture<Void> future = new SimpleFuture<>();
+         synchronized (this) {
+-            this.queueCommand(() -> {
+-                this.asyncWithFuture(future, () -> {
+-                    if (!this.connected) {
+-                        Peripheral.this.closeNotificationStreams();
+-                        if (Peripheral.this.gatt != null) {
+-                            Peripheral.this.gatt.close();
+-                            Peripheral.this.gatt = null;
+-                        }
+-                        Peripheral.this.wakeCommand(future, null);
+-                    } else {
+-                        this.setCommandCallback(new CommandCallback(future) {
+-                            @Override
+-                            public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+-                                Peripheral.this.asyncWithFuture(future, () -> {
+-                                    if (status != BluetoothGatt.GATT_SUCCESS) {
+-                                        throw new RuntimeException("Unable to disconnect, status: " + status);
+-                                    }
+-
+-                                    if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+-                                        Peripheral.this.gatt.close();
+-                                        Peripheral.this.gatt = null;
+-                                        Peripheral.this.wakeCommand(future, null);
+-                                    }
+-                                });
+-                            }
+-                        });
+-                        this.gatt.disconnect();
+-                    }
+-                });
+-            });
++            // Teardown cannot wait behind an OS callback that may never arrive.
++            // Acknowledgement means this GATT client has been closed, not that
++            // all other apps have disconnected the device's shared radio link.
++            if (this.pendingRetry != null) {
++                this.pendingRetry.cancel(false);
++                this.pendingRetry = null;
++            }
++            SimpleFuture<?> interrupted = this.activeFuture;
++            this.activeFuture = null;
++            this.commandCallback = null;
++            this.executingCommand = false;
++            if (interrupted != null) interrupted.wakeWithThrowable(new NotConnectedException());
++            while (!this.commandQueue.isEmpty()) {
++                this.commandQueue.remove().future.wakeWithThrowable(new NotConnectedException());
++            }
++            this.connected = false;
++            this.closeNotificationStreams();
++            try {
++                if (this.gatt != null) {
++                    try { this.gatt.disconnect(); }
++                    finally {
++                        this.gatt.close();
++                        this.gatt = null;
++                    }
++                }
++                future.wake(null);
++            } catch (Throwable ex) {
++                future.wakeWithThrowable(ex);
++            }
+         }
+         return future;
+     }
+@@ -251,7 +264,7 @@
+     public Future<Integer> requestMtu(int mtu) {
+         SimpleFuture<Integer> future = new SimpleFuture<>();
+         synchronized (this) {
+-            this.queueCommand(() -> {
++            this.queueCommand(future, () -> {
+                 this.asyncWithFuture(future, () -> {
+                     if (!this.connected) {
+                         throw new NotConnectedException();
+@@ -280,7 +293,7 @@
+     public Future<byte[]> read(UUID uuid) {
+         SimpleFuture<byte[]> future = new SimpleFuture<>();
+         synchronized (this) {
+-            this.queueCommand(() -> {
++            this.queueCommand(future, () -> {
+                 this.asyncWithFuture(future, () -> {
+                     if (!this.connected) {
+                         throw new NotConnectedException();
+@@ -316,7 +329,7 @@
+     public Future<Void> write(UUID uuid, byte[] data, int writeType) {
+         SimpleFuture<Void> future = new SimpleFuture<>();
+         synchronized (this) {
+-            this.queueCommand(() -> {
++            this.queueCommand(future, () -> {
+                 this.asyncWithFuture(future, () -> {
+                     if (!this.connected) {
+                         throw new NotConnectedException();
+@@ -354,7 +367,7 @@
+     public Future<List<BluetoothGattService>> discoverServices() {
+         SimpleFuture<List<BluetoothGattService>> future = new SimpleFuture<>();
+         synchronized (this) {
+-            this.queueCommand(() -> {
++            this.queueCommand(future, () -> {
+                 this.asyncWithFuture(future, () -> {
+                     if (!this.connected) {
+                         throw new NotConnectedException();
+@@ -385,7 +398,7 @@
+     public Future<Void> setCharacteristicNotification(UUID uuid, boolean enable) {
+         SimpleFuture<Void> future = new SimpleFuture<>();
+         synchronized (this) {
+-            this.queueCommand(() -> {
++            this.queueCommand(future, () -> {
+                 this.asyncWithFuture(future, () -> {
+                     if (!this.connected) {
+                         throw new NotConnectedException();
+@@ -454,7 +467,7 @@
+     public Future<byte[]> readDescriptor(UUID characteristic, UUID uuid) {
+         SimpleFuture<byte[]> future = new SimpleFuture<>();
+         synchronized (this) {
+-            this.queueCommand(() -> {
++            this.queueCommand(future, () -> {
+                 this.asyncWithFuture(future, () -> {
+                     if (!this.connected) {
+                         throw new NotConnectedException();
+@@ -490,7 +503,7 @@
+     public Future<Void> writeDescriptor(UUID characteristic, UUID uuid, byte[] data) {
+         SimpleFuture<Void> future = new SimpleFuture<>();
+         synchronized (this) {
+-            this.queueCommand(() -> {
++            this.queueCommand(future, () -> {
+                 this.asyncWithFuture(future, () -> {
+                     if (!this.connected) {
+                         throw new NotConnectedException();
+@@ -527,7 +540,7 @@
+     public Future<Integer> readRemoteRssi() {
+         SimpleFuture<Integer> future = new SimpleFuture<>();
+         synchronized (this) {
+-            this.queueCommand(() -> {
++            this.queueCommand(future, () -> {
+                 this.asyncWithFuture(future, () -> {
+                     if (!this.connected) {
+                         throw new NotConnectedException();
+@@ -586,11 +599,13 @@
+         throw new NoSuchCharacteristicException();
+     }
+ 
+-    private void queueCommand(Runnable callback) {
++    private void queueCommand(SimpleFuture<?> future, Runnable callback) {
++        QueuedCommand command = new QueuedCommand(future, callback);
+         if (this.executingCommand) {
+-            this.commandQueue.add(callback);
++            this.commandQueue.add(command);
+         } else {
+             this.executingCommand = true;
++            this.activeFuture = future;
+             callback.run();
+         }
+     }
+@@ -603,20 +618,24 @@
+     private void runNextCommand() {
+         assert this.executingCommand;
+         this.commandCallback = null;
++        this.activeFuture = null;
+         if (this.commandQueue.isEmpty()) {
+             this.executingCommand = false;
+         } else {
+-            Runnable callback = this.commandQueue.remove();
+-            callback.run();
++            QueuedCommand command = this.commandQueue.remove();
++            this.activeFuture = command.future;
++            command.callback.run();
+         }
+     }
+ 
+     private <T> void wakeCommand(SimpleFuture<T> future, T result) {
++        if (this.activeFuture != future) return;
+         future.wake(result);
+         this.runNextCommand();
+     }
+ 
+     private <T> void asyncWithFuture(SimpleFuture<T> future, Runnable callback) {
++        if (this.activeFuture != future) return;
+         try {
+             callback.run();
+         } catch (Throwable ex) {
+--- a/src/main/java/io/github/gedgygedgy/rust/future/SimpleFuture.java
++++ b/src/main/java/io/github/gedgygedgy/rust/future/SimpleFuture.java
+@@ -42,9 +42,10 @@
+     private void wakeInternal(PollResult<T> result) {
+         Waker waker = null;
+         synchronized (this.lock) {
+-            assert this.result == null;
++            if (this.result != null) return;
+             this.result = result;
+             waker = this.waker;
++            this.waker = null;
+         }
+         if (waker != null) {
+             waker.wake();

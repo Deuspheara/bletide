@@ -1,0 +1,84 @@
+--- a/src/main/java/com/nonpolynomial/btleplug/android/impl/Adapter.java
++++ b/src/main/java/com/nonpolynomial/btleplug/android/impl/Adapter.java
+@@ -17,12 +17,13 @@
+ @SuppressWarnings("unused") // Native code uses this class.
+ class Adapter {
+     private long handle;
+-    private final Callback callback = new Callback();
++    private Callback callback;
++    private long generation;
+ 
+     public Adapter() {}
+ 
+     @SuppressLint("MissingPermission")
+-    public void startScan(ScanFilter filter) {
++    public synchronized void startScan(ScanFilter filter) {
+         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+         if (bluetoothAdapter == null) {
+           throw new NoBluetoothAdapterException();
+@@ -51,11 +52,19 @@
+         if (scanner == null) {
+           throw new NoBluetoothAdapterException();
+         }
++        if (this.callback != null) {
++            throw new IllegalStateException("Previous scan requires cleanup");
++        }
++        if (generation == Long.MAX_VALUE) {
++            throw new IllegalStateException("Scan generation exhausted");
++        }
++        this.callback = new Callback(++generation);
+         scanner.startScan(filters, settings, this.callback);
+     }
+ 
+     @SuppressLint("MissingPermission")
+-    public void stopScan() {
++    public synchronized void stopScan() {
++        if (this.callback == null) return;
+         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+         if (bluetoothAdapter != null) {
+             BluetoothLeScanner scanner = bluetoothAdapter.getBluetoothLeScanner();
+@@ -63,6 +72,17 @@
+                 scanner.stopScan(this.callback);
+             }
+         }
++        this.callback = null;
++    }
++
++    public synchronized long[] getScanState() {
++        return new long[]{generation, callback == null ? 0 : callback.failure};
++    }
++
++    private native void reportScanFailed(long generation, int errorCode);
++
++    protected void publishScanFailure(long generation, int errorCode) {
++        reportScanFailed(generation, errorCode);
+     }
+ 
+     private native void reportScanResult(ScanResult result);
+@@ -70,9 +90,25 @@
+     public native void onConnectionStateChanged(String address, boolean connected);
+ 
+     private class Callback extends ScanCallback {
++        private final long generation;
++        private int failure;
++        Callback(long generation) { this.generation = generation; }
++
+         @Override
+         public void onScanResult(int callbackType, ScanResult result) {
+-            Adapter.this.reportScanResult(result);
++            synchronized (Adapter.this) {
++                if (Adapter.this.callback != this || failure != 0) return;
++                Adapter.this.reportScanResult(result);
++            }
++        }
++
++        @Override
++        public void onScanFailed(int errorCode) {
++            synchronized (Adapter.this) {
++                if (Adapter.this.callback != this || failure != 0) return;
++                failure = errorCode;
++                Adapter.this.publishScanFailure(generation, errorCode);
++            }
+         }
+     }
+ }

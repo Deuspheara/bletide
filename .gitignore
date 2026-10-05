@@ -1,0 +1,81 @@
+# Local tooling and editor state
+.DS_Store
+*.swp
+*.swo
+*.log
+*.pyc
+__pycache__/
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.local/
+.agents/
+.codex/
+
+# Dart / Flutter caches and generated outputs
+.dart_tool/
+.pub-cache/
+.pub/
+.flutter-plugins-dependencies
+build/
+coverage/
+doc/api/
+.widget_preview/
+# Libraries resolve in consumers; the example app keeps its lock.
+/pubspec.lock
+
+# Native caches and build outputs
+/rust/target/
+.gradle/
+.kotlin/
+.cxx/
+.swiftpm/
+DerivedData/
+*.class
+*.o
+*.dSYM/
+app.*.symbols
+app.*.map.json
+
+# Credentials, signing material and machine-specific settings
+.env
+.env.*
+!.env.example
+!.env.*.example
+.aws/
+.ssh/
+.netrc
+.npmrc
+.pypirc
+credentials.json
+service-account*.json
+google-services.json
+GoogleService-Info.plist
+local.properties
+key.properties
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.mobileprovision
+*.pem
+*.key
+
+# Private peripheral configurations, captures and local evidence
+/integration_test/hardware*.json
+!/integration_test/hardware.example.json
+*.local.json
+*.local.yaml
+*.local.yml
+*.pcap
+*.pcapng
+/hardware-results/
+/evidence/
+
+# Crash dumps from subprocess tests
+/core
+/core.[0-9]*
+/rust/core
+/rust/core.[0-9]*

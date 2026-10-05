@@ -1,0 +1,37 @@
+name: bletide
+description: "Cross-platform Bluetooth Low Energy transport for Dart and Flutter."
+version: 0.0.1
+repository: https://github.com/Deuspheara/bletide
+issue_tracker: https://github.com/Deuspheara/bletide/issues
+
+environment:
+  sdk: ^3.13.2
+  flutter: ">=3.47.2"
+
+dependencies:
+  code_assets: ^1.1.0
+  hooks: ^2.0.0
+  native_toolchain_rust: ^1.0.6
+  web: ^1.1.1
+  ffi: ^2.1.4
+
+dev_dependencies:
+  fake_async: ^1.3.3
+  flutter_lints: ^6.0.0
+  test: ^1.28.0
+
+flutter:
+  assets:
+    - THIRD_PARTY_LICENSES
+    - THIRD_PARTY_NOTICES
+  plugin:
+    platforms:
+      android:
+        package: dev.bletide
+        pluginClass: BletidePlugin
+
+# Root-package development tests only. Consuming apps use their own hook defines.
+hooks:
+  user_defines:
+    bletide:
+      test_support: true

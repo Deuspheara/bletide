@@ -1,0 +1,199 @@
+--- a/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
++++ b/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
+@@ -290,7 +290,7 @@
+     }
+ 
+     @SuppressLint("MissingPermission")
+-    public Future<byte[]> read(UUID uuid) {
++    public Future<byte[]> read(UUID serviceUuid, UUID uuid) {
+         SimpleFuture<byte[]> future = new SimpleFuture<>();
+         synchronized (this) {
+             this.queueCommand(future, () -> {
+@@ -299,7 +299,7 @@
+                         throw new NotConnectedException();
+                     }
+ 
+-                    BluetoothGattCharacteristic characteristic = this.getCharacteristicByUuid(uuid);
++                    BluetoothGattCharacteristic characteristic = this.getCharacteristicByUuid(serviceUuid, uuid);
+                     this.setCommandCallback(new CommandCallback(future) {
+                         @Override
+                         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+@@ -308,7 +308,7 @@
+                                     throw new RuntimeException("Unable to read characteristic, status: " + status);
+                                 }
+ 
+-                                if (!characteristic.getUuid().equals(uuid)) {
++                                if (!characteristic.getUuid().equals(uuid) || !characteristic.getService().getUuid().equals(serviceUuid)) {
+                                     throw new UnexpectedCharacteristicException();
+                                 }
+ 
+@@ -326,7 +326,7 @@
+     }
+ 
+     @SuppressLint("MissingPermission")
+-    public Future<Void> write(UUID uuid, byte[] data, int writeType) {
++    public Future<Void> write(UUID serviceUuid, UUID uuid, byte[] data, int writeType) {
+         SimpleFuture<Void> future = new SimpleFuture<>();
+         synchronized (this) {
+             this.queueCommand(future, () -> {
+@@ -335,7 +335,7 @@
+                         throw new NotConnectedException();
+                     }
+ 
+-                    BluetoothGattCharacteristic characteristic = this.getCharacteristicByUuid(uuid);
++                    BluetoothGattCharacteristic characteristic = this.getCharacteristicByUuid(serviceUuid, uuid);
+                     characteristic.setValue(data);
+                     characteristic.setWriteType(writeType);
+                     this.setCommandCallback(new CommandCallback(future) {
+@@ -346,7 +346,7 @@
+                                     throw new RuntimeException("Unable to write characteristic, status: " + status);
+                                 }
+ 
+-                                if (!characteristic.getUuid().equals(uuid)) {
++                                if (!characteristic.getUuid().equals(uuid) || !characteristic.getService().getUuid().equals(serviceUuid)) {
+                                     throw new UnexpectedCharacteristicException();
+                                 }
+ 
+@@ -395,7 +395,7 @@
+     }
+ 
+     @SuppressLint("MissingPermission")
+-    public Future<Void> setCharacteristicNotification(UUID uuid, boolean enable) {
++    public Future<Void> setCharacteristicNotification(UUID serviceUuid, UUID uuid, boolean enable) {
+         SimpleFuture<Void> future = new SimpleFuture<>();
+         synchronized (this) {
+             this.queueCommand(future, () -> {
+@@ -404,12 +404,12 @@
+                         throw new NotConnectedException();
+                     }
+ 
+-                    BluetoothGattCharacteristic characteristic = this.getCharacteristicByUuid(uuid);
++                    BluetoothGattCharacteristic characteristic = this.getCharacteristicByUuid(serviceUuid, uuid);
++                    BluetoothGattDescriptor descriptor = this.getDescriptorByUuid(serviceUuid, uuid, CLIENT_CHARACTERISTIC_CONFIGURATION_DESCRIPTOR);
+                     if (!this.gatt.setCharacteristicNotification(characteristic, enable)) {
+                         throw new RuntimeException("Unable to set characteristic notification");
+                     }
+ 
+-                    BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CLIENT_CHARACTERISTIC_CONFIGURATION_DESCRIPTOR);
+                     byte[] cccdValue;
+                     if (!enable) {
+                         cccdValue = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
+@@ -431,7 +431,7 @@
+                                     throw new RuntimeException("Unable to write client characteristic configuration descriptor, status: " + status);
+                                 }
+ 
+-                                if (!descriptor.getUuid().equals(CLIENT_CHARACTERISTIC_CONFIGURATION_DESCRIPTOR) || !descriptor.getCharacteristic().getUuid().equals(uuid)) {
++                                if (!descriptor.getUuid().equals(CLIENT_CHARACTERISTIC_CONFIGURATION_DESCRIPTOR) || !descriptor.getCharacteristic().getUuid().equals(uuid) || !descriptor.getCharacteristic().getService().getUuid().equals(serviceUuid)) {
+                                     throw new UnexpectedCharacteristicException();
+                                 }
+ 
+@@ -464,7 +464,7 @@
+     }
+ 
+     @SuppressLint("MissingPermission")
+-    public Future<byte[]> readDescriptor(UUID characteristic, UUID uuid) {
++    public Future<byte[]> readDescriptor(UUID serviceUuid, UUID characteristic, UUID uuid) {
+         SimpleFuture<byte[]> future = new SimpleFuture<>();
+         synchronized (this) {
+             this.queueCommand(future, () -> {
+@@ -473,7 +473,7 @@
+                         throw new NotConnectedException();
+                     }
+ 
+-                    BluetoothGattDescriptor descriptor = this.getDescriptorByUuid(characteristic, uuid);
++                    BluetoothGattDescriptor descriptor = this.getDescriptorByUuid(serviceUuid, characteristic, uuid);
+                     this.setCommandCallback(new CommandCallback(future) {
+                         @Override
+                         public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+@@ -482,7 +482,7 @@
+                                     throw new RuntimeException("Unable to read descriptor, status: " + status);
+                                 }
+ 
+-                                if (!descriptor.getUuid().equals(uuid)) {
++                                if (!descriptor.getUuid().equals(uuid) || !descriptor.getCharacteristic().getUuid().equals(characteristic) || !descriptor.getCharacteristic().getService().getUuid().equals(serviceUuid)) {
+                                     throw new UnexpectedCharacteristicException();
+                                 }
+ 
+@@ -500,7 +500,7 @@
+     }
+ 
+     @SuppressLint("MissingPermission")
+-    public Future<Void> writeDescriptor(UUID characteristic, UUID uuid, byte[] data) {
++    public Future<Void> writeDescriptor(UUID serviceUuid, UUID characteristic, UUID uuid, byte[] data) {
+         SimpleFuture<Void> future = new SimpleFuture<>();
+         synchronized (this) {
+             this.queueCommand(future, () -> {
+@@ -509,7 +509,7 @@
+                         throw new NotConnectedException();
+                     }
+ 
+-                    BluetoothGattDescriptor descriptor = this.getDescriptorByUuid(characteristic, uuid);
++                    BluetoothGattDescriptor descriptor = this.getDescriptorByUuid(serviceUuid, characteristic, uuid);
+                     descriptor.setValue(data);
+                     this.setCommandCallback(new CommandCallback(future) {
+                         @Override
+@@ -519,7 +519,7 @@
+                                     throw new RuntimeException("Unable to write descriptor, status: " + status);
+                                 }
+ 
+-                                if (!descriptor.getUuid().equals(uuid)) {
++                                if (!descriptor.getUuid().equals(uuid) || !descriptor.getCharacteristic().getUuid().equals(characteristic) || !descriptor.getCharacteristic().getService().getUuid().equals(serviceUuid)) {
+                                     throw new UnexpectedCharacteristicException();
+                                 }
+ 
+@@ -566,20 +566,19 @@
+     }
+ 
+     @SuppressLint("MissingPermission")
+-    private List<BluetoothGattCharacteristic> getCharacteristics() {
+-        List<BluetoothGattCharacteristic> result = new ArrayList<>();
++    private BluetoothGattCharacteristic getCharacteristicByUuid(UUID serviceUuid, UUID uuid) {
++        BluetoothGattService service = null;
+         if (this.gatt != null) {
+-            for (BluetoothGattService service : this.gatt.getServices()) {
+-                result.addAll(service.getCharacteristics());
+-            }
+-        }
+-        return result;
+-    }
+-
+-    @SuppressLint("MissingPermission")
+-    private BluetoothGattCharacteristic getCharacteristicByUuid(UUID uuid) {
++            for (BluetoothGattService candidate : this.gatt.getServices()) {
++                if (candidate.getUuid().equals(serviceUuid)) {
++                    if (service != null) throw new UnexpectedCharacteristicException();
++                    service = candidate;
++                }
++            }
++        }
++        if (service == null) throw new NoSuchCharacteristicException();
+         BluetoothGattCharacteristic match = null;
+-        for (BluetoothGattCharacteristic characteristic : this.getCharacteristics()) {
++        for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+             if (characteristic.getUuid().equals(uuid)) {
+                 if (match != null) throw new UnexpectedCharacteristicException();
+                 match = characteristic;
+@@ -590,8 +589,8 @@
+     }
+ 
+     @SuppressLint("MissingPermission")
+-    private BluetoothGattDescriptor getDescriptorByUuid(UUID characteristicUuid, UUID uuid) {
+-        BluetoothGattCharacteristic characteristic = getCharacteristicByUuid(characteristicUuid);
++    private BluetoothGattDescriptor getDescriptorByUuid(UUID serviceUuid, UUID characteristicUuid, UUID uuid) {
++        BluetoothGattCharacteristic characteristic = getCharacteristicByUuid(serviceUuid, characteristicUuid);
+         BluetoothGattDescriptor match = null;
+         for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
+             if (descriptor.getUuid().equals(uuid)) {
+@@ -767,7 +766,11 @@
+                     return;
+                 }
+                 BluetoothGattCharacteristic characteristic2 = new BluetoothGattCharacteristic(characteristic.getUuid(), characteristic.getProperties(), characteristic.getPermissions());
+-                characteristic2.setValue(characteristic.getValue());
++                byte[] value = characteristic.getValue();
++                characteristic2.setValue(java.util.Arrays.copyOf(value, value.length));
++                BluetoothGattService sourceService = characteristic.getService();
++                BluetoothGattService serviceCopy = new BluetoothGattService(sourceService.getUuid(), sourceService.getType());
++                serviceCopy.addCharacteristic(characteristic2);
+                 for (WeakReference<QueueStream<BluetoothGattCharacteristic>> ref : Peripheral.this.notificationStreams) {
+                     QueueStream<BluetoothGattCharacteristic> stream = ref.get();
+                     if (stream != null) {

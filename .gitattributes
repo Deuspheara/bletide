@@ -1,0 +1,17 @@
+* text=auto eol=lf
+
+# Preserve exact bytes checked by the upstream provenance verifiers.
+rust/vendor/** -text -whitespace
+rust/licenses/** -text -whitespace
+android/src/** -text -whitespace
+android/patches/** -text -whitespace
+android/LICENSE.btleplug.md -text -whitespace
+
+*.bin binary
+*.jar binary
+*.png binary
+*.ico binary
+THIRD_PARTY_LICENSES text eol=lf -whitespace
+THIRD_PARTY_NOTICES text eol=lf -whitespace
+example/android/gradlew text eol=lf
+example/android/gradlew.bat text eol=crlf

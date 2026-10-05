@@ -1,0 +1,170 @@
+name: validate
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-contracts:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: '3.47.2'
+          cache: true
+      - name: Linux native build requirements
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev pkg-config clang cmake ninja-build libgtk-3-dev
+      - name: Install pinned Rust compiler
+        run: rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy --no-self-update
+      - name: Install pinned Rust targets
+        run: rustup target add --toolchain 1.99.0 armv7-linux-androideabi aarch64-linux-android x86_64-linux-android aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios aarch64-pc-windows-msvc x86_64-pc-windows-msvc aarch64-unknown-linux-gnu x86_64-unknown-linux-gnu aarch64-apple-darwin x86_64-apple-darwin
+        working-directory: rust
+      - name: Resolve Dart dependencies
+        run: flutter pub get
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.13'
+      - name: Repository hygiene
+        run: python tool/repository_check.py
+      - name: Pinned upstream source verification
+        run: python tool/upstream_sources.py
+      - name: Dart event C ABI layout
+        run: python tool/event_layout.py
+      - name: Pinned backend lifecycle regressions
+        working-directory: rust
+        run: cargo test --locked --manifest-path vendor/btleplug/Cargo.toml --target-dir target/upstream-tests --lib
+      - name: Pinned BlueZ XML and transport regressions
+        if: runner.os == 'Linux'
+        working-directory: rust
+        run: cargo test --locked --manifest-path vendor/bluez-async/Cargo.toml --target-dir target/bluez-tests --lib
+      - name: Pinned D-Bus reply ownership regressions
+        if: runner.os == 'Linux'
+        working-directory: rust
+        run: cargo test --locked --manifest-path vendor/dbus/Cargo.toml --target-dir target/dbus-tests --features futures --lib openble_reply_ownership_tests
+      - name: D-Bus initialization cancellation and registration regressions
+        if: runner.os == 'Linux'
+        working-directory: rust
+        run: python ../tool/dbus_async_setup_probe.py --report /tmp/bletide-dbus-setup.json
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
+        if: runner.os != 'Windows'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Android SDK and pinned NDK
+        if: runner.os == 'Linux'
+        run: JAVA_HOME="$JAVA_HOME_21_X64" "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "ndk;28.2.13676358"
+      - name: Actual bundled Java through host JNI
+        if: runner.os == 'macOS'
+        run: python3 tool/jni_host_tests.py
+      - name: Install pinned dependency audit tool
+        if: runner.os == 'Linux'
+        working-directory: rust
+        run: cargo install cargo-deny --version 0.20.2 --locked
+      - name: Rust dependency advisories, licenses, and sources
+        if: runner.os == 'Linux'
+        working-directory: rust
+        run: |
+          cargo deny --locked check advisories licenses sources
+          python3 ../tool/native_licenses.py --check
+      - name: Rust format, lint, and deterministic tests
+        working-directory: rust
+        run: |
+          cargo fmt --check
+          cargo clippy --locked --all-targets --all-features -- -D warnings
+          cargo test --locked
+      - name: Windows native x64 and ARM64 target checks
+        if: runner.os == 'Windows'
+        working-directory: rust
+        run: |
+          cargo clippy --locked --target x86_64-pc-windows-msvc --all-targets --all-features -- -D warnings
+          cargo clippy --locked --target aarch64-pc-windows-msvc --all-targets --all-features -- -D warnings
+      - name: Dart format and analysis
+        run: |
+          dart format --output=none --set-exit-if-changed lib hook test integration_test example/lib example/integration_test example/test_driver example/test
+          dart analyze
+      - name: Hardware harness dependency resolution and analysis
+        working-directory: example
+        run: |
+          flutter pub get
+          dart analyze
+      - name: Native ABI and lifecycle contracts
+        run: flutter test
+      - name: Example connection and notification lifecycle
+        working-directory: example
+        run: flutter test test/testbench_test.dart
+      - name: Web Bluetooth JS interop contracts
+        if: runner.os == 'Linux'
+        run: dart test --platform chrome test/web_chooser_test.dart test/web_gatt_test.dart
+      - name: macOS debug packaging
+        if: runner.os == 'macOS'
+        working-directory: example
+        run: flutter build macos --debug
+      - name: macOS release packaging
+        if: runner.os == 'macOS'
+        working-directory: example
+        run: flutter build macos --release
+      - name: iOS device packaging without signing
+        if: runner.os == 'macOS'
+        working-directory: example
+        run: flutter build ios --release --no-codesign
+      - name: iOS simulator packaging
+        if: runner.os == 'macOS'
+        working-directory: example
+        run: flutter build ios --simulator --debug
+      - name: Apple consumer bundle verification
+        if: runner.os == 'macOS'
+        run: |
+          python3 tool/apple_bundle.py --platform macos --app example/build/macos/Build/Products/Release/bletide_example.app
+          python3 tool/apple_bundle.py --platform ios --app example/build/ios/iphoneos/Runner.app
+          python3 tool/apple_bundle.py --platform simulator --app example/build/ios/iphonesimulator/Runner.app
+      - name: Windows release packaging
+        if: runner.os == 'Windows'
+        working-directory: example
+        run: flutter build windows --release
+      - name: Windows consumer bundle verification
+        if: runner.os == 'Windows'
+        run: python tool/windows_bundle.py --bundle example/build/windows/x64/runner/Release
+      - name: Linux release packaging
+        if: runner.os == 'Linux'
+        working-directory: example
+        run: flutter build linux --release
+      - name: Linux consumer bundle verification
+        if: runner.os == 'Linux'
+        run: python3 tool/linux_bundle.py --bundle example/build/linux/x64/release/bundle
+      - name: Linux missing-system-bus adapter initialization
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          probe_dir=$(mktemp -d)
+          trap 'rm -rf "$probe_dir"' EXIT
+          DBUS_SYSTEM_BUS_ADDRESS="unix:path=$probe_dir/system-bus" dart integration_test/native_adapter_probe.dart example/build/linux/x64/release/bundle/lib/libbletide.so 1
+      - name: Bundled Android source verification
+        if: runner.os == 'Linux'
+        run: python3 tool/android_sources.py
+      - name: Android GATT generation and notification lifetime regressions
+        if: runner.os == 'Linux'
+        working-directory: example/android
+        run: ./gradlew :bletide:testDebugUnitTest --console=plain
+      - name: Android debug and release packaging
+        if: runner.os == 'Linux'
+        working-directory: example
+        run: |
+          flutter build apk --debug
+          flutter build apk --release --split-per-abi --target-platform android-arm,android-arm64,android-x64
+          python3 ../tool/android_apks.py --toolchain "$ANDROID_HOME/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin"
+      - name: Web compilation (separate from device verification)
+        if: runner.os == 'Linux'
+        working-directory: example
+        run: flutter build web

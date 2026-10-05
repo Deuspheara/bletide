@@ -1,0 +1,134 @@
+--- a/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
++++ b/src/main/java/com/nonpolynomial/btleplug/android/impl/Peripheral.java
+@@ -184,6 +184,11 @@
+             this.queueCommand(() -> {
+                 this.asyncWithFuture(future, () -> {
+                     if (!this.connected) {
++                        Peripheral.this.closeNotificationStreams();
++                        if (Peripheral.this.gatt != null) {
++                            Peripheral.this.gatt.close();
++                            Peripheral.this.gatt = null;
++                        }
+                         Peripheral.this.wakeCommand(future, null);
+                     } else {
+                         this.setCommandCallback(new CommandCallback(future) {
+@@ -428,11 +433,21 @@
+     }
+ 
+     public Stream<BluetoothGattCharacteristic> getNotifications() {
+-        QueueStream<BluetoothGattCharacteristic> stream = new QueueStream<>();
+-        synchronized (this) {
++        QueueStream<BluetoothGattCharacteristic> stream = new QueueStream<>(1024);
++        synchronized (this) {
++            // openble owns exactly one notification stream per physical generation.
++            this.closeNotificationStreams();
+             this.notificationStreams.add(new WeakReference<>(stream));
+         }
+         return stream;
++    }
++
++    private void closeNotificationStreams() {
++        for (WeakReference<QueueStream<BluetoothGattCharacteristic>> ref : this.notificationStreams) {
++            QueueStream<BluetoothGattCharacteristic> stream = ref.get();
++            if (stream != null) stream.close();
++        }
++        this.notificationStreams.clear();
+     }
+ 
+     @SuppressLint("MissingPermission")
+@@ -640,6 +655,7 @@
+                         break;
+                     case BluetoothGatt.STATE_DISCONNECTED:
+                         Peripheral.this.connected = false;
++                        Peripheral.this.closeNotificationStreams();
+                         break;
+                 }
+                 // Reset before dispatch; the command callback below sets it back to true if needed.
+@@ -647,6 +663,12 @@
+                 if (Peripheral.this.commandCallback != null) {
+                     Peripheral.this.dispatchToCommandCallback("onConnectionStateChange",
+                             () -> Peripheral.this.commandCallback.onConnectionStateChange(gatt, status, newState));
++                }
++                // A remote loss with no command callback still owns a GATT object.
++                // Close only this event's object, never a newly started generation.
++                if (newState == BluetoothGatt.STATE_DISCONNECTED && Peripheral.this.gatt == gatt) {
++                    gatt.close();
++                    Peripheral.this.gatt = null;
+                 }
+                 suppressDisconnectNotification = Peripheral.this.suppressDisconnectNotification;
+                 // A failed connect closes the gatt and clears `connected` even if the state was CONNECTED.
+--- a/src/main/java/io/github/gedgygedgy/rust/stream/QueueStream.java
++++ b/src/main/java/io/github/gedgygedgy/rust/stream/QueueStream.java
+@@ -15,12 +15,35 @@
+     private Waker waker = null;
+     private final Queue<T> result = new LinkedList<>();
+     private boolean finished = false;
++    private final int capacity;
+     private final Object lock = new Object();
+ 
+     /**
+      * Creates a new {@link QueueStream} object.
+      */
+-    public QueueStream() {}
++    public QueueStream() { this(Integer.MAX_VALUE); }
++
++    /** A bounded stream terminates and discards its backlog on overflow. */
++    public QueueStream(int capacity) {
++        if (capacity <= 0) throw new IllegalArgumentException("Invalid stream capacity");
++        this.capacity = capacity;
++    }
++
++    public boolean isFinished() {
++        synchronized (this.lock) { return this.finished; }
++    }
++
++    /** Deterministic disposal, including queued payloads and the native waker. */
++    public void close() {
++        Waker pending;
++        synchronized (this.lock) {
++            this.finished = true;
++            this.result.clear();
++            pending = this.waker;
++            this.waker = null;
++        }
++        if (pending != null) pending.wake();
++    }
+ 
+     @Override
+     public PollResult<StreamPoll<T>> pollNext(Waker waker) {
+@@ -28,7 +51,8 @@
+         Waker oldWaker = null;
+         synchronized (this.lock) {
+             if (!this.result.isEmpty()) {
+-                result = () -> () -> this.result.remove();
++                T item = this.result.remove();
++                result = () -> () -> item;
+             } else if (this.finished) {
+                 result = () -> null;
+             } else {
+@@ -48,9 +72,10 @@
+     private void doEvent(Runnable r) {
+         Waker waker = null;
+         synchronized (this.lock) {
+-            assert !this.finished;
++            if (this.finished) return;
+             r.run();
+             waker = this.waker;
++            this.waker = null;
+         }
+         if (waker != null) {
+             waker.wake();
+@@ -66,7 +91,12 @@
+     public void add(T item) {
+         this.doEvent(() -> {
+             synchronized (this.lock) {
+-                this.result.add(item);
++                if (this.result.size() >= this.capacity) {
++                    this.result.clear();
++                    this.finished = true;
++                } else {
++                    this.result.add(item);
++                }
+             }
+         });
+     }

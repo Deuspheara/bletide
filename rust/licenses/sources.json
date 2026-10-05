@@ -1,0 +1,157 @@
+{
+  "block2@0.6.2": {
+    "commit": "b4167b582b2f75f9a1be75495c41b765344fd03c",
+    "files": [
+      {
+        "file": "b4167b582b2f75f9a1be75495c41b765344fd03c-LICENSE.md",
+        "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+        "source": "https://raw.githubusercontent.com/madsmtm/objc2/b4167b582b2f75f9a1be75495c41b765344fd03c/LICENSE.md"
+      }
+    ],
+    "license": "MIT",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "bluez-async@0.8.2": {
+    "commit": "6c0204b0e28804cc8b4937eec43cba9c72e0bfd5",
+    "files": [
+      {
+        "file": "6c0204b0e28804cc8b4937eec43cba9c72e0bfd5-LICENSE",
+        "sha256": "bfb693431319dd415497586fd9e573098ab81cced291ec7bdba488c30560b859",
+        "source": "https://raw.githubusercontent.com/bluez-rs/bluez-async/6c0204b0e28804cc8b4937eec43cba9c72e0bfd5/LICENSE"
+      },
+      {
+        "file": "6c0204b0e28804cc8b4937eec43cba9c72e0bfd5-LICENSE-APACHE",
+        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "source": "https://raw.githubusercontent.com/bluez-rs/bluez-async/6c0204b0e28804cc8b4937eec43cba9c72e0bfd5/LICENSE-APACHE"
+      },
+      {
+        "file": "6c0204b0e28804cc8b4937eec43cba9c72e0bfd5-LICENSE-MIT",
+        "sha256": "eef0c0b2cf6e14147a8362cfa2408a79220cc1ea22bab1a2e188b9cd1d2e0f0d",
+        "source": "https://raw.githubusercontent.com/bluez-rs/bluez-async/6c0204b0e28804cc8b4937eec43cba9c72e0bfd5/LICENSE-MIT"
+      }
+    ],
+    "license": "MIT OR Apache-2.0",
+    "repository": "https://github.com/bluez-rs/bluez-async"
+  },
+  "bluez-generated@0.4.0": {
+    "commit": "0162fe1f036e7ceef218db49e8d034692b80f8ca",
+    "files": [
+      {
+        "file": "0162fe1f036e7ceef218db49e8d034692b80f8ca-LICENSE",
+        "sha256": "bfb693431319dd415497586fd9e573098ab81cced291ec7bdba488c30560b859",
+        "source": "https://raw.githubusercontent.com/bluez-rs/bluez-async/0162fe1f036e7ceef218db49e8d034692b80f8ca/LICENSE"
+      },
+      {
+        "file": "0162fe1f036e7ceef218db49e8d034692b80f8ca-LICENSE-APACHE",
+        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "source": "https://raw.githubusercontent.com/bluez-rs/bluez-async/0162fe1f036e7ceef218db49e8d034692b80f8ca/LICENSE-APACHE"
+      },
+      {
+        "file": "0162fe1f036e7ceef218db49e8d034692b80f8ca-LICENSE-MIT",
+        "sha256": "eef0c0b2cf6e14147a8362cfa2408a79220cc1ea22bab1a2e188b9cd1d2e0f0d",
+        "source": "https://raw.githubusercontent.com/bluez-rs/bluez-async/0162fe1f036e7ceef218db49e8d034692b80f8ca/LICENSE-MIT"
+      }
+    ],
+    "license": "MIT OR Apache-2.0",
+    "repository": "https://github.com/bluez-rs/bluez-async"
+  },
+  "jni-macros@0.22.4": {
+    "commit": "33045a124105c939d1e2cbdcb5a39e5d868ffa03",
+    "files": [
+      {
+        "file": "33045a124105c939d1e2cbdcb5a39e5d868ffa03-LICENSE-APACHE",
+        "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "source": "https://raw.githubusercontent.com/jni-rs/jni-rs/33045a124105c939d1e2cbdcb5a39e5d868ffa03/LICENSE-APACHE"
+      },
+      {
+        "file": "33045a124105c939d1e2cbdcb5a39e5d868ffa03-LICENSE-MIT",
+        "sha256": "fea1d5bf3dd71605ce5d7d2ff695c1837e914c77195e523a86b5391716477960",
+        "source": "https://raw.githubusercontent.com/jni-rs/jni-rs/33045a124105c939d1e2cbdcb5a39e5d868ffa03/LICENSE-MIT"
+      }
+    ],
+    "license": "MIT OR Apache-2.0",
+    "repository": "https://github.com/jni-rs/jni-rs"
+  },
+  "jni-sys-macros@0.4.1": {
+    "commit": "64d77b7a5f119d7b55b4e2c169a4668067ff59e6",
+    "files": [
+      {
+        "file": "64d77b7a5f119d7b55b4e2c169a4668067ff59e6-LICENSE-APACHE",
+        "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+        "source": "https://raw.githubusercontent.com/jni-rs/jni-sys/64d77b7a5f119d7b55b4e2c169a4668067ff59e6/LICENSE-APACHE"
+      },
+      {
+        "file": "64d77b7a5f119d7b55b4e2c169a4668067ff59e6-LICENSE-MIT",
+        "sha256": "1d85bd754b04ceec93e98e890edd1fa3c6a22e81bcb32135806beeccefa51cd1",
+        "source": "https://raw.githubusercontent.com/jni-rs/jni-sys/64d77b7a5f119d7b55b4e2c169a4668067ff59e6/LICENSE-MIT"
+      }
+    ],
+    "license": "MIT OR Apache-2.0",
+    "repository": "https://github.com/jni-rs/jni-sys"
+  },
+  "jni@0.22.4": {
+    "commit": "5ae9458a4ec44c5318f37ddc7569c1d4ae8a69e7",
+    "files": [
+      {
+        "file": "5ae9458a4ec44c5318f37ddc7569c1d4ae8a69e7-LICENSE-APACHE",
+        "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "source": "https://raw.githubusercontent.com/jni-rs/jni-rs/5ae9458a4ec44c5318f37ddc7569c1d4ae8a69e7/LICENSE-APACHE"
+      },
+      {
+        "file": "5ae9458a4ec44c5318f37ddc7569c1d4ae8a69e7-LICENSE-MIT",
+        "sha256": "fea1d5bf3dd71605ce5d7d2ff695c1837e914c77195e523a86b5391716477960",
+        "source": "https://raw.githubusercontent.com/jni-rs/jni-rs/5ae9458a4ec44c5318f37ddc7569c1d4ae8a69e7/LICENSE-MIT"
+      }
+    ],
+    "license": "MIT OR Apache-2.0",
+    "repository": "https://github.com/jni-rs/jni-rs"
+  },
+  "objc2-core-bluetooth@0.3.2": {
+    "commit": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b",
+    "files": [
+      {
+        "file": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b-LICENSE.md",
+        "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+        "source": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md"
+      }
+    ],
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2-encode@4.1.0": {
+    "commit": "8d214f5477365ffcbcbb7de058c86ed9a518efb7",
+    "files": [
+      {
+        "file": "8d214f5477365ffcbcbb7de058c86ed9a518efb7-LICENSE.md",
+        "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+        "source": "https://raw.githubusercontent.com/madsmtm/objc2/8d214f5477365ffcbcbb7de058c86ed9a518efb7/LICENSE.md"
+      }
+    ],
+    "license": "MIT",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2-foundation@0.3.2": {
+    "commit": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b",
+    "files": [
+      {
+        "file": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b-LICENSE.md",
+        "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+        "source": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md"
+      }
+    ],
+    "license": "MIT",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2@0.6.4": {
+    "commit": "8852b424193ca41602281b3d7540d7c8ed51e49a",
+    "files": [
+      {
+        "file": "8852b424193ca41602281b3d7540d7c8ed51e49a-LICENSE.md",
+        "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+        "source": "https://raw.githubusercontent.com/madsmtm/objc2/8852b424193ca41602281b3d7540d7c8ed51e49a/LICENSE.md"
+      }
+    ],
+    "license": "MIT",
+    "repository": "https://github.com/madsmtm/objc2"
+  }
+}
